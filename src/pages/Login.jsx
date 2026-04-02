@@ -28,41 +28,125 @@ export default function Login() {
     <div style={{
       minHeight: '100vh',
       width: '100%',
-      backgroundImage: 'url("/beacon-login.png")',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center top',
-      backgroundRepeat: 'no-repeat',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      position: 'relative',
+      overflow: 'hidden',
     }}>
-      {/* Spacer to push form down to match image layout */}
-      <div style={{ flex: '1 1 58%' }} />
+      {/* Background image - your exact Beacon design */}
+      <img
+        src="/beacon-login.png"
+        alt="Beacon Login"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          objectPosition: 'center',
+        }}
+      />
 
-      {/* Login Form - styled to match the image exactly */}
+      {/* Invisible functional form overlay - positioned over the image's form */}
       <form onSubmit={handleSubmit} style={{
-        width: '360px',
-        maxWidth: '88vw',
-        background: 'rgba(17, 24, 39, 0.88)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        borderRadius: '14px',
-        padding: '28px 28px 24px',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        gap: '0px',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingTop: '18vh',
       }}>
         {error && (
           <div style={{
-            background: 'rgba(220, 38, 38, 0.2)',
-            border: '1px solid rgba(220, 38, 38, 0.4)',
-            color: '#fca5a5',
+            background: 'rgba(220, 38, 38, 0.9)',
+            color: '#ffffff',
             fontSize: '0.85rem',
             borderRadius: '8px',
-            padding: '0.65rem 1rem',
-            marginBottom: '16px',
+            padding: '0.65rem 1.2rem',
+            marginBottom: '8px',
+            textAlign: 'center',
+            zIndex: 20,
+            maxWidth: '320px',
+          }}>
+            {error}
+          </div>
+        )}
+
+        <div style={{
+          width: '340px',
+          maxWidth: '85vw',
+          display: 'flex',
+          flexDirection: 'column',
+        }}>
+          {/* Email input - invisible, sits over the image's email field */}
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            placeholder=""
+            autoComplete="email"
+            style={{
+              width: '100%',
+              height: '52px',
+              padding: '24px 12px 8px',
+              background: 'transparent',
+              border: 'none',
+              color: 'rgba(255,255,255,0.9)',
+              fontSize: '0.95rem',
+              outline: 'none',
+              boxSizing: 'border-box',
+              caretColor: 'white',
+            }}
+          />
+
+          {/* Password input - invisible, sits over the image's password field */}
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            placeholder=""
+            autoComplete="current-password"
+            style={{
+              width: '100%',
+              height: '58px',
+              padding: '24px 12px 8px',
+              background: 'transparent',
+              border: 'none',
+              color: 'rgba(255,255,255,0.9)',
+              fontSize: '0.95rem',
+              outline: 'none',
+              boxSizing: 'border-box',
+              caretColor: 'white',
+            }}
+          />
+
+          {/* Login button - invisible, sits over the image's LOGIN button */}
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: '100%',
+              height: '50px',
+              marginTop: '4px',
+              background: 'transparent',
+              color: 'transparent',
+              border: 'none',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              fontSize: '0.9rem',
+            }}
+          >
+            LOGIN
+          </button>
+        </div>
+      </form>
+    </div>
+  )
+}
             textAlign: 'center',
           }}>
             {error}
