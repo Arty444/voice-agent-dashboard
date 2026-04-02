@@ -39,17 +39,19 @@ export default function Login() {
       position: 'relative'
     }}>
       <form onSubmit={handleSubmit} style={{
-        width: '52vw',
-        maxWidth: '520px',
-        minWidth: '340px',
+        width: '88vw',
+        maxWidth: '700px',
+        minWidth: '360px',
         background: 'rgba(15, 20, 30, 1)',
         borderRadius: '18px',
-        padding: '36px 40px 32px',
-        marginBottom: '4vh',
+        padding: '40px 44px 40px',
+        marginBottom: '0',
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
-        zIndex: 2
+        zIndex: 2,
+        borderBottomLeftRadius: '0',
+        borderBottomRightRadius: '0'
       }}>
         {error && (
           <div style={{
