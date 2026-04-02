@@ -32,18 +32,12 @@ export default function Login() {
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      position: 'relative',
-      overflow: 'hidden'
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     }}>
-      {/* Full image displayed without cropping */}
       <div style={{
         position: 'relative',
         width: '100%',
-        maxWidth: '900px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center'
+        maxWidth: '1000px'
       }}>
         <img
           src="/beacon-login.png"
@@ -54,29 +48,30 @@ export default function Login() {
             display: 'block'
           }}
         />
-        {/* Real form overlaid on top of the image's form */}
         <form onSubmit={handleSubmit} style={{
           position: 'absolute',
-          bottom: '4%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '52%',
+          top: '62.9%',
+          left: '32.2%',
+          width: '35.4%',
+          bottom: '8.1%',
           background: 'rgba(15, 20, 30, 1)',
           borderRadius: '14px',
-          padding: '28px 32px 24px',
+          padding: '5% 6% 4%',
           display: 'flex',
           flexDirection: 'column',
-          zIndex: 2
+          justifyContent: 'center',
+          zIndex: 2,
+          boxSizing: 'border-box'
         }}>
           {error && (
             <div style={{
               background: 'rgba(220, 38, 38, 0.2)',
               border: '1px solid rgba(220, 38, 38, 0.4)',
               color: '#fca5a5',
-              fontSize: '0.85rem',
+              fontSize: '0.8rem',
               borderRadius: '8px',
-              padding: '10px 14px',
-              marginBottom: '14px',
+              padding: '8px 12px',
+              marginBottom: '3%',
               textAlign: 'center'
             }}>
               {error}
@@ -84,12 +79,12 @@ export default function Login() {
           )}
 
           <label style={{
-            fontSize: '0.7rem',
+            fontSize: '0.65rem',
             fontWeight: 600,
             color: 'rgba(255,255,255,0.55)',
             letterSpacing: '0.14em',
             textTransform: 'uppercase',
-            marginBottom: '2px'
+            marginBottom: '1px'
           }}>
             EMAIL
           </label>
@@ -101,25 +96,25 @@ export default function Login() {
             placeholder="you@example.com"
             style={{
               width: '100%',
-              padding: '8px 0',
+              padding: '6px 0',
               background: 'transparent',
               border: 'none',
               borderBottom: '1px solid rgba(255,255,255,0.2)',
               color: '#ffffff',
-              fontSize: '0.9rem',
+              fontSize: '0.85rem',
               outline: 'none',
               boxSizing: 'border-box',
-              marginBottom: '16px'
+              marginBottom: '5%'
             }}
           />
 
           <label style={{
-            fontSize: '0.7rem',
+            fontSize: '0.65rem',
             fontWeight: 600,
             color: 'rgba(255,255,255,0.55)',
             letterSpacing: '0.14em',
             textTransform: 'uppercase',
-            marginBottom: '2px'
+            marginBottom: '1px'
           }}>
             PASSWORD
           </label>
@@ -131,15 +126,15 @@ export default function Login() {
             placeholder="••••••••"
             style={{
               width: '100%',
-              padding: '8px 0',
+              padding: '6px 0',
               background: 'transparent',
               border: 'none',
               borderBottom: '1px solid rgba(255,255,255,0.2)',
               color: '#ffffff',
-              fontSize: '0.9rem',
+              fontSize: '0.85rem',
               outline: 'none',
               boxSizing: 'border-box',
-              marginBottom: '20px'
+              marginBottom: '6%'
             }}
           />
 
@@ -148,14 +143,14 @@ export default function Login() {
             disabled={loading}
             style={{
               width: '100%',
-              padding: '12px',
+              padding: '10px',
               background: loading
                 ? 'rgba(255,255,255,0.15)'
                 : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(235,228,210,0.95) 100%)',
               color: loading ? 'rgba(255,255,255,0.5)' : '#1a1a2e',
               border: 'none',
               borderRadius: '8px',
-              fontSize: '0.82rem',
+              fontSize: '0.8rem',
               fontWeight: 700,
               letterSpacing: '0.18em',
               textTransform: 'uppercase',
