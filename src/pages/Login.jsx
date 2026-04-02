@@ -39,19 +39,17 @@ export default function Login() {
       position: 'relative'
     }}>
       <form onSubmit={handleSubmit} style={{
-        width: '88vw',
-        maxWidth: '700px',
-        minWidth: '360px',
+        width: '55vw',
+        maxWidth: '540px',
+        minWidth: '320px',
         background: 'rgba(15, 20, 30, 1)',
-        borderRadius: '18px',
-        padding: '40px 44px 40px',
-        marginBottom: '0',
+        borderRadius: '16px',
+        padding: '32px 36px 28px',
+        marginBottom: '5vh',
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
-        zIndex: 2,
-        borderBottomLeftRadius: '0',
-        borderBottomRightRadius: '0'
+        zIndex: 2
       }}>
         {error && (
           <div style={{
@@ -69,12 +67,12 @@ export default function Login() {
         )}
 
         <label style={{
-          fontSize: '0.75rem',
+          fontSize: '0.72rem',
           fontWeight: 600,
           color: 'rgba(255,255,255,0.55)',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          marginBottom: '4px'
+          marginBottom: '2px'
         }}>
           EMAIL
         </label>
@@ -83,28 +81,28 @@ export default function Login() {
           value={email}
           onChange={function(e) { setEmail(e.target.value) }}
           required
-          placeholder="email@example.com"
+          placeholder="you@example.com"
           style={{
             width: '100%',
-            padding: '12px 0',
+            padding: '10px 0',
             background: 'transparent',
             border: 'none',
             borderBottom: '1px solid rgba(255,255,255,0.2)',
             color: '#ffffff',
-            fontSize: '1rem',
+            fontSize: '0.95rem',
             outline: 'none',
             boxSizing: 'border-box',
-            marginBottom: '24px'
+            marginBottom: '20px'
           }}
         />
 
         <label style={{
-          fontSize: '0.75rem',
+          fontSize: '0.72rem',
           fontWeight: 600,
           color: 'rgba(255,255,255,0.55)',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          marginBottom: '4px'
+          marginBottom: '2px'
         }}>
           PASSWORD
         </label>
@@ -116,15 +114,15 @@ export default function Login() {
           placeholder="••••••••"
           style={{
             width: '100%',
-            padding: '12px 0',
+            padding: '10px 0',
             background: 'transparent',
             border: 'none',
             borderBottom: '1px solid rgba(255,255,255,0.2)',
             color: '#ffffff',
-            fontSize: '1rem',
+            fontSize: '0.95rem',
             outline: 'none',
             boxSizing: 'border-box',
-            marginBottom: '28px'
+            marginBottom: '24px'
           }}
         />
 
@@ -133,14 +131,14 @@ export default function Login() {
           disabled={loading}
           style={{
             width: '100%',
-            padding: '16px',
+            padding: '14px',
             background: loading
               ? 'rgba(255,255,255,0.15)'
               : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(235,228,210,0.95) 100%)',
             color: loading ? 'rgba(255,255,255,0.5)' : '#1a1a2e',
             border: 'none',
-            borderRadius: '10px',
-            fontSize: '0.9rem',
+            borderRadius: '8px',
+            fontSize: '0.85rem',
             fontWeight: 700,
             letterSpacing: '0.18em',
             textTransform: 'uppercase',
