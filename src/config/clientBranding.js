@@ -27,6 +27,7 @@ const clientBranding = {
     message: 'Messages',
     question: 'Questions',
     misc: 'Other Activity',
+    spam: 'Spam',
   },
 
   // Status badges

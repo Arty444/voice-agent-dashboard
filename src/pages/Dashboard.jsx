@@ -15,6 +15,7 @@ const TABS = [
   { key: 'message', label: branding.tabs.message },
   { key: 'question', label: branding.tabs.question },
   { key: 'misc', label: branding.tabs.misc },
+  { key: 'spam', label: 'Spam' },
 ]
 
 const CATEGORY_STYLES = {
@@ -22,6 +23,7 @@ const CATEGORY_STYLES = {
   message: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
   question: { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
   misc: { bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200' },
+  spam: { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200' },
 }
 
 const CATEGORY_LABELS = {
@@ -29,9 +31,11 @@ const CATEGORY_LABELS = {
   message: 'Message',
   question: 'Question',
   misc: 'Other',
+  spam: 'Spam',
 }
 
 function categorizeCall(call) {
+  if (call.is_spam) return 'spam'
   if (call.category && call.category !== 'misc') return call.category
   if (call.is_lead || (call.trial_day && call.trial_day.length > 0)) return 'trial'
   if (call.call_type && (call.call_type.toLowerCase().includes('question') || call.call_type.toLowerCase().includes('inquiry'))) return 'question'
@@ -171,7 +175,7 @@ export default function Dashboard() {
   }, [filteredCalls])
 
   const unreadCounts = useMemo(() => {
-    const counts = { all: 0, trial: 0, message: 0, question: 0, misc: 0 }
+    const counts = { all: 0, trial: 0, message: 0, question: 0, misc: 0, spam: 0 }
     enrichedCalls.forEach(c => {
       if (!c.read_at) {
         counts[c._category] = (counts[c._category] || 0) + 1

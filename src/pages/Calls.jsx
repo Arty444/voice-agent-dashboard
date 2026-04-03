@@ -100,7 +100,7 @@ export default function Calls() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: '#1e293b' }}>Calls</h1>
+        <h1 className="text-2xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: '#1e293b' }}>Call History</h1>
         <p className="text-sm mt-1" style={{ color: '#64748b' }}>{total} total calls</p>
       </div>
 
@@ -171,7 +171,6 @@ export default function Calls() {
                   <th className="px-4 py-3 font-medium text-gray-500">Program</th>
                   <th className="px-4 py-3 font-medium text-gray-500">Duration</th>
                   <th className="px-4 py-3 font-medium text-gray-500">Outcome</th>
-                  <th className="px-4 py-3 font-medium text-gray-500">Mood</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -189,9 +188,6 @@ export default function Calls() {
                     <td className="px-4 py-3 text-gray-500">{call.program || '—'}</td>
                     <td className="px-4 py-3 text-gray-500">{formatDuration(call.duration_seconds)}</td>
                     <td className="px-4 py-3"><Badge text={getOutcomeBadge(call)} /></td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-block w-2.5 h-2.5 rounded-full ${getSentimentDot(call.sentiment)}`} />
-                    </td>
                   </tr>
                 ))}
               </tbody>
