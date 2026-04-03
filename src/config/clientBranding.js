@@ -14,7 +14,6 @@ const clientBranding = {
     subtitle: 'Today at McHugh',
     inbox: 'Front Desk',
     calls: 'Calls',
-    leads: 'Prospects',
     analytics: 'Analytics',
     settings: 'Settings',
     totalCalls: 'Inquiries Captured',

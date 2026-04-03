@@ -16,7 +16,6 @@ import { useState } from 'react'
 const navItems = [
   { to: '/', label: branding.terminology.dashboard, icon: LayoutDashboard },
   { to: '/calls', label: branding.terminology.calls, icon: Phone },
-  { to: '/leads', label: branding.terminology.leads, icon: Users },
   { to: '/analytics', label: branding.terminology.analytics, icon: BarChart3 },
   { to: '/settings', label: branding.terminology.settings, icon: Settings },
 ]
@@ -58,7 +57,7 @@ export default function Layout() {
             <img
               src={branding.logo}
               alt={branding.name}
-              className="w-24 h-24 object-contain mb-3"
+              className="w-36 h-36 object-contain mb-4"
             />
             <h1
               className="text-xl font-bold text-white"
