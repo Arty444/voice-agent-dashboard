@@ -173,7 +173,7 @@ export default function Calls() {
                       {call.caller_name || 'Unknown'}
                     </td>
                     <td className="px-4 py-3 text-gray-500">{call.caller_phone || '—'}</td>
-                    <td className="px-4 py-3 text-gray-500">{call.call_date}</td>
+                    <td className="px-4 py-3 text-gray-500">{call.call_date ? new Date(call.call_date + 'T00:00:00').toLocaleDateString('en-US') : '—'}</td>
                     <td className="px-4 py-3 text-gray-500">{call.program || '—'}</td>
                     <td className="px-4 py-3"><Badge text={getOutcomeBadge(call)} /></td>
                   </tr>
