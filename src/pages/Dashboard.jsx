@@ -94,20 +94,21 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('all')
   const [selectedCall, setSelectedCall] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [dayRange, setDayRange] = useState(7)
 
   const clientId = clientData?.id
 
   useEffect(() => {
     if (!clientId && !isAdmin) return
     fetchCalls()
-  }, [clientId, isAdmin])
+  }, [clientId, isAdmin, dayRange])
 
   async function fetchCalls() {
-    const threeDaysAgo = subDays(new Date(), 3).toISOString().split('T')[0]
+    const cutoff = subDays(new Date(), dayRange).toISOString().split('T')[0]
     let query = supabase
       .from('calls')
       .select('*')
-      .gte('call_date', threeDaysAgo)
+      .gte('call_date', cutoff)
       .order('created_at', { ascending: false })
 
     if (clientId && !isAdmin) {
@@ -194,13 +195,37 @@ export default function Dashboard() {
   return (
     <div className="space-y-6" style={{ fontFamily: "'Poppins', sans-serif" }}>
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text, fontSize: '1.75rem', letterSpacing: '0.01em' }}>
-          {branding.name} {branding.terminology.dashboard}
-        </h1>
-        <p className="text-sm mt-0.5" style={{ color: branding.colors.textSecondary }}>
-          {branding.terminology.subtitle} — Last 3 days
-        </p>
+      <div className="flex items-end justify-between">
+        <div>
+          <h1 className="text-2xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text, fontSize: '1.75rem', letterSpacing: '0.01em' }}>
+            {branding.name} {branding.terminology.dashboard}
+          </h1>
+          <p className="text-sm mt-0.5" style={{ color: branding.colors.textSecondary }}>
+            {branding.terminology.subtitle} — Last {dayRange} days
+          </p>
+        </div>
+        <div className="flex rounded-lg overflow-hidden border" style={{ borderColor: branding.colors.border }}>
+          <button
+            onClick={() => setDayRange(3)}
+            className="px-3 py-1.5 text-sm font-medium transition-colors"
+            style={{
+              backgroundColor: dayRange === 3 ? branding.colors.primary : branding.colors.card,
+              color: dayRange === 3 ? '#ffffff' : branding.colors.textSecondary,
+            }}
+          >
+            3 Days
+          </button>
+          <button
+            onClick={() => setDayRange(7)}
+            className="px-3 py-1.5 text-sm font-medium transition-colors"
+            style={{
+              backgroundColor: dayRange === 7 ? branding.colors.primary : branding.colors.card,
+              color: dayRange === 7 ? '#ffffff' : branding.colors.textSecondary,
+            }}
+          >
+            7 Days
+          </button>
+        </div>
       </div>
 
       {/* Stats cards */}

@@ -4,7 +4,7 @@ import branding from '../config/clientBranding'
 import {
   LayoutDashboard,
   Phone,
-  Users,
+  ClipboardList,
   BarChart3,
   Settings,
   Shield,
@@ -15,7 +15,7 @@ import { useState } from 'react'
 
 const navItems = [
   { to: '/', label: branding.terminology.dashboard, icon: LayoutDashboard },
-  { to: '/calls', label: branding.terminology.calls, icon: Phone },
+  { to: '/calls', label: 'Call History', icon: ClipboardList },
   { to: '/analytics', label: branding.terminology.analytics, icon: BarChart3 },
   { to: '/settings', label: branding.terminology.settings, icon: Settings },
 ]
