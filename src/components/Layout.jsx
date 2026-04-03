@@ -46,54 +46,50 @@ export default function Layout() {
       {/* Sidebar */}
       <aside
         className={`
-          fixed inset-y-0 left-0 z-30 w-64
+          fixed inset-y-0 left-0 z-30 w-72
           transform transition-transform lg:translate-x-0 lg:static lg:z-auto
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
         style={{ backgroundColor: branding.colors.sidebar }}
       >
         <div className="flex flex-col h-full">
-          {/* Logo area */}
-          <div className="p-5 border-b border-white/10">
-            <div className="flex items-center gap-3">
-              <img
-                src={branding.logo}
-                alt={branding.name}
-                className="w-10 h-10 object-contain"
-              />
-              <div>
-                <h1
-                  className="text-base font-semibold text-white"
-                  style={{ fontFamily: "'Khand', sans-serif", letterSpacing: '0.02em' }}
-                >
-                  {branding.name}
-                </h1>
-                <p className="text-[11px] tracking-wide" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                  Powered by {branding.poweredBy}
-                </p>
-              </div>
-            </div>
+          {/* Logo area — large and prominent */}
+          <div className="px-6 pt-8 pb-6 border-b border-white/10 flex flex-col items-center text-center">
+            <img
+              src={branding.logo}
+              alt={branding.name}
+              className="w-24 h-24 object-contain mb-3"
+            />
+            <h1
+              className="text-xl font-bold text-white"
+              style={{ fontFamily: "'Khand', sans-serif", letterSpacing: '0.03em' }}
+            >
+              {branding.name}
+            </h1>
+            <p className="text-[11px] tracking-widest mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              Powered by {branding.poweredBy}
+            </p>
             {displayName && (
-              <p className="text-xs mt-3 truncate" style={{ color: branding.colors.sidebarText }}>
+              <p className="text-xs mt-3 truncate w-full" style={{ color: branding.colors.sidebarText }}>
                 {displayName}
               </p>
             )}
           </div>
 
           {/* Nav links */}
-          <nav className="flex-1 p-3 space-y-0.5">
+          <nav className="flex-1 p-4 space-y-1">
             {navItems.map(({ to, label, icon: Icon }) => (
               <NavLink
                 key={to}
                 to={to}
                 onClick={() => setSidebarOpen(false)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                className="flex items-center gap-4 px-4 py-3 rounded-lg text-[15px] font-medium transition-colors"
                 style={({ isActive }) => ({
                   backgroundColor: isActive ? 'rgba(24, 103, 192, 0.15)' : 'transparent',
                   color: isActive ? '#60a5fa' : branding.colors.sidebarText,
                 })}
               >
-                <Icon size={18} />
+                <Icon size={20} />
                 {label}
               </NavLink>
             ))}
@@ -102,26 +98,26 @@ export default function Layout() {
               <NavLink
                 to="/admin"
                 onClick={() => setSidebarOpen(false)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                className="flex items-center gap-4 px-4 py-3 rounded-lg text-[15px] font-medium transition-colors"
                 style={({ isActive }) => ({
                   backgroundColor: isActive ? 'rgba(168, 85, 247, 0.15)' : 'transparent',
                   color: isActive ? '#c084fc' : 'rgba(168, 85, 247, 0.7)',
                 })}
               >
-                <Shield size={18} />
+                <Shield size={20} />
                 Admin
               </NavLink>
             )}
           </nav>
 
           {/* Sign out */}
-          <div className="p-3 border-t border-white/10">
+          <div className="p-4 border-t border-white/10">
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium w-full transition-colors hover:bg-white/5"
+              className="flex items-center gap-4 px-4 py-3 rounded-lg text-[15px] font-medium w-full transition-colors hover:bg-white/5"
               style={{ color: branding.colors.sidebarText }}
             >
-              <LogOut size={18} />
+              <LogOut size={20} />
               Sign Out
             </button>
           </div>
@@ -138,7 +134,7 @@ export default function Layout() {
           <button onClick={() => setSidebarOpen(true)} className="text-white">
             <Menu size={24} />
           </button>
-          <span className="text-sm font-medium text-white">{displayName}</span>
+          <img src={branding.logo} alt={branding.name} className="w-8 h-8 object-contain" />
           <div className="w-6" />
         </header>
 

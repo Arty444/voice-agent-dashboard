@@ -13,7 +13,7 @@ const clientBranding = {
     dashboard: 'Command Center',
     subtitle: 'Today at McHugh',
     inbox: 'Front Desk',
-    calls: 'Inquiries',
+    calls: 'Calls',
     leads: 'Prospects',
     analytics: 'Analytics',
     settings: 'Settings',

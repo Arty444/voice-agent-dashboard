@@ -100,8 +100,8 @@ export default function Calls() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: '#1e293b' }}>Inquiries</h1>
-        <p className="text-sm mt-1" style={{ color: '#64748b' }}>{total} total inquiries</p>
+        <h1 className="text-2xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: '#1e293b' }}>Calls</h1>
+        <p className="text-sm mt-1" style={{ color: '#64748b' }}>{total} total calls</p>
       </div>
 
       {/* Filters */}
