@@ -57,7 +57,7 @@ export default function Layout() {
             <img
               src={branding.logo}
               alt={branding.name}
-              className="w-36 h-36 object-contain mb-4"
+              className="w-48 h-48 object-contain mb-4"
             />
             <h1
               className="text-xl font-bold text-white"
