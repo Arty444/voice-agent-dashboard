@@ -1,7 +1,7 @@
-import { X, Clock, Phone, User, MessageSquare } from 'lucide-react'
+import { X, Clock, Phone, User, MessageSquare, Pin, PinOff, CheckCircle2, Circle, PhoneCall } from 'lucide-react'
 import Badge from './Badge'
 
-export default function CallDetailPanel({ call, onClose }) {
+export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogglePin }) {
   if (!call) return null
 
   function formatDuration(seconds) {
@@ -17,12 +17,17 @@ export default function CallDetailPanel({ call, onClose }) {
     return call.call_type || 'Inquiry'
   }
 
+  function cleanSummary(summary) {
+    if (!summary) return ''
+    return summary.replace(/^call_summary\s*/i, '').trim()
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
       <div className="relative w-full max-w-lg bg-white shadow-xl overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
           <h2 className="text-lg font-semibold text-gray-900">Call Details</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X size={20} />
@@ -30,18 +35,70 @@ export default function CallDetailPanel({ call, onClose }) {
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Caller info */}
-          <div className="space-y-3">
+          {/* Caller info with call-back button */}
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                <User size={18} className="text-gray-500" />
+              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                <User size={20} className="text-gray-500" />
               </div>
               <div>
-                <p className="font-medium text-gray-900">{call.caller_name || 'Unknown'}</p>
+                <p className="font-semibold text-gray-900 text-lg">{call.caller_name || 'Unknown'}</p>
                 <p className="text-sm text-gray-500">{call.caller_phone || '—'}</p>
               </div>
             </div>
+            {call.caller_phone && (
+              <a
+                href={`tel:${call.caller_phone}`}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+              >
+                <PhoneCall size={16} />
+                Call Back
+              </a>
+            )}
           </div>
+
+          {/* Quick actions */}
+          {(onToggleHandled || onTogglePin) && (
+            <div className="flex gap-2">
+              {onToggleHandled && (
+                <button
+                  onClick={() => onToggleHandled(call.id, call.handled)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                    call.handled
+                      ? 'bg-green-50 border-green-200 text-green-700'
+                      : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {call.handled ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+                  {call.handled ? 'Handled' : 'Mark Handled'}
+                </button>
+              )}
+              {onTogglePin && (
+                <button
+                  onClick={() => onTogglePin(call.id, call.pinned)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                    call.pinned
+                      ? 'bg-amber-50 border-amber-200 text-amber-700'
+                      : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {call.pinned ? <PinOff size={16} /> : <Pin size={16} />}
+                  {call.pinned ? 'Unpin' : 'Pin'}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Summary — prominent */}
+          {call.summary && (
+            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+              <h3 className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2 flex items-center gap-2">
+                <MessageSquare size={14} />
+                Summary
+              </h3>
+              <p className="text-sm text-gray-800 leading-relaxed">{cleanSummary(call.summary)}</p>
+            </div>
+          )}
 
           {/* Meta grid */}
           <div className="grid grid-cols-2 gap-4">
@@ -82,17 +139,6 @@ export default function CallDetailPanel({ call, onClose }) {
               </>
             )}
           </div>
-
-          {/* Summary */}
-          {call.summary && (
-            <div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                <MessageSquare size={14} />
-                Summary
-              </h3>
-              <p className="text-sm text-gray-600 leading-relaxed">{call.summary}</p>
-            </div>
-          )}
 
           {/* Transcript */}
           {call.transcript && (
