@@ -139,16 +139,6 @@ export default function Calls() {
             <option value="inquiries">Inquiries</option>
             <option value="spam">Spam</option>
           </select>
-          <select
-            value={sentimentFilter}
-            onChange={e => { setSentimentFilter(e.target.value); setPage(0) }}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-          >
-            <option value="">All Sentiments</option>
-            <option value="Positive">Positive</option>
-            <option value="Neutral">Neutral</option>
-            <option value="Negative">Negative</option>
-          </select>
         </div>
       </div>
 
@@ -169,7 +159,6 @@ export default function Calls() {
                   <th className="px-4 py-3 font-medium text-gray-500">Phone</th>
                   <th className="px-4 py-3 font-medium text-gray-500">Date</th>
                   <th className="px-4 py-3 font-medium text-gray-500">Program</th>
-                  <th className="px-4 py-3 font-medium text-gray-500">Duration</th>
                   <th className="px-4 py-3 font-medium text-gray-500">Outcome</th>
                 </tr>
               </thead>
@@ -186,7 +175,6 @@ export default function Calls() {
                     <td className="px-4 py-3 text-gray-500">{call.caller_phone || '—'}</td>
                     <td className="px-4 py-3 text-gray-500">{call.call_date}</td>
                     <td className="px-4 py-3 text-gray-500">{call.program || '—'}</td>
-                    <td className="px-4 py-3 text-gray-500">{formatDuration(call.duration_seconds)}</td>
                     <td className="px-4 py-3"><Badge text={getOutcomeBadge(call)} /></td>
                   </tr>
                 ))}
