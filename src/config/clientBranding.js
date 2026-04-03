@@ -19,8 +19,6 @@ const clientBranding = {
     settings: 'Settings',
     totalCalls: 'Inquiries Captured',
     trialsBooked: 'Trials Scheduled',
-    followUps: 'Follow-Ups Needed',
-    missingInfo: 'Missing Info',
   },
 
   // Tab labels for the activity feed
@@ -35,10 +33,7 @@ const clientBranding = {
   // Status badges
   statuses: {
     confirmed: 'Confirmed',
-    needsFollowUp: 'Needs Follow-Up',
-    missingInfo: 'Missing Info',
     newInquiry: 'New Inquiry',
-    reschedule: 'Reschedule Needed',
   },
 
   // Programs offered by this client
