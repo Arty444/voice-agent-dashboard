@@ -60,8 +60,8 @@ export default function Leads() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Leads</h1>
-        <p className="text-sm text-gray-500 mt-1">{leads.length} booked trials</p>
+        <h1 className="text-2xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: '#1e293b' }}>Prospects</h1>
+        <p className="text-sm mt-1" style={{ color: '#64748b' }}>{leads.length} scheduled trials</p>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
