@@ -63,9 +63,9 @@ export default function Analytics() {
     })
   }
 
-  // ---- Calls by program (donut) ----
+  // ---- Trials by program (donut) ----
   const programCounts = {}
-  calls.filter(c => !c.is_spam && c.program).forEach(c => {
+  calls.filter(c => !c.is_spam && c.program && c.program !== 'N/A' && (c.is_lead || (c.trial_day && c.trial_day.length > 0))).forEach(c => {
     programCounts[c.program] = (programCounts[c.program] || 0) + 1
   })
   const programData = Object.entries(programCounts)
@@ -176,7 +176,7 @@ export default function Analytics() {
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Calls by Program</h2>
+          <h2 className="text-base font-semibold text-gray-900 mb-4">Trials by Program</h2>
           <div className="h-56">
             {programData.length === 0 ? (
               <div className="flex items-center justify-center h-full text-gray-400 text-sm">No data</div>
