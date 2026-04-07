@@ -185,6 +185,15 @@ export default function Dashboard() {
     return counts
   }, [enrichedCalls])
 
+  const categoryCounts = useMemo(() => {
+    const counts = { all: 0, trial: 0, message: 0, question: 0, misc: 0, spam: 0 }
+    enrichedCalls.forEach(c => {
+      counts[c._category] = (counts[c._category] || 0) + 1
+      counts.all += 1
+    })
+    return counts
+  }, [enrichedCalls])
+
   const totalCalls = enrichedCalls.length
   const trialsScheduled = enrichedCalls.filter(c => c._category === 'trial').length
 
@@ -267,7 +276,7 @@ export default function Dashboard() {
         <div className="flex border-b overflow-x-auto" style={{ borderColor: branding.colors.border }}>
           {TABS.map(tab => {
             const isActive = activeTab === tab.key
-            const count = unreadCounts[tab.key] || 0
+            const count = categoryCounts[tab.key] || 0
             return (
               <button
                 key={tab.key}
