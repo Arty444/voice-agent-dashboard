@@ -37,7 +37,8 @@ const CATEGORY_LABELS = {
 function categorizeCall(call) {
   if (call.is_spam) return 'spam'
   if (call.category && call.category !== 'misc') return call.category
-  if (call.is_lead || (call.trial_day && call.trial_day.length > 0)) return 'trial'
+  const hasTrialDay = call.trial_day && call.trial_day.length > 0 && !['N/A', 'NA', 'None'].includes(call.trial_day)
+  if (call.is_lead || hasTrialDay) return 'trial'
   if (call.call_type && (call.call_type.toLowerCase().includes('question') || call.call_type.toLowerCase().includes('inquiry'))) return 'question'
   if (call.call_type && (call.call_type.toLowerCase().includes('message') || call.call_type.toLowerCase().includes('voicemail'))) return 'message'
   if (call.is_lead) return 'trial'
