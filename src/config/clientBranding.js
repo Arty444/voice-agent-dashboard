@@ -27,6 +27,7 @@ const clientBranding = {
     message: 'Messages',
     question: 'Questions',
     misc: 'Other Activity',
+    cancellation: 'Cancellations',
     spam: 'Spam',
   },
 

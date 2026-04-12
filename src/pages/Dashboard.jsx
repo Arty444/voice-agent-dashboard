@@ -15,6 +15,7 @@ const TABS = [
   { key: 'message', label: branding.tabs.message },
   { key: 'question', label: branding.tabs.question },
   { key: 'misc', label: branding.tabs.misc },
+  { key: 'cancellation', label: branding.tabs.cancellation },
   { key: 'spam', label: 'Spam' },
 ]
 
@@ -23,6 +24,7 @@ const CATEGORY_STYLES = {
   message: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
   question: { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
   misc: { bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200' },
+  cancellation: { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
   spam: { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200' },
 }
 
@@ -31,22 +33,24 @@ const CATEGORY_LABELS = {
   message: 'Message',
   question: 'Question',
   misc: 'Other',
+  cancellation: 'Cancel',
   spam: 'Spam',
 }
 
 function categorizeCall(call) {
   if (call.is_spam) return 'spam'
   if (call.category && call.category !== 'misc') return call.category
-  const hasTrialDay = call.trial_day && call.trial_day.length > 0 && !['N/A', 'NA', 'None'].includes(call.trial_day)
+  const ct = (call.call_type || '').toLowerCase()
+  const hasTrialDay = call.trial_day && call.trial_day.length > 0 && !['n/a', 'na', 'none'].includes(call.trial_day.toLowerCase())
   if (call.is_lead || hasTrialDay) return 'trial'
-  if (call.call_type && (call.call_type.toLowerCase().includes('question') || call.call_type.toLowerCase().includes('inquiry'))) return 'question'
-  if (call.call_type && (call.call_type.toLowerCase().includes('message') || call.call_type.toLowerCase().includes('voicemail'))) return 'message'
-  if (call.is_lead) return 'trial'
+  if (ct.includes('cancel')) return 'cancellation'
+  if (ct.includes('question') || ct.includes('inquiry')) return 'question'
+  if (ct.includes('message') || ct.includes('voicemail')) return 'message'
   return 'misc'
 }
 
 function getTrialLine(call) {
-  if (!call.trial_day) return null
+  if (!call.trial_day || ['n/a', 'na', 'none'].includes(call.trial_day.toLowerCase())) return null
   const program = call.program || 'Class'
   try {
     const d = parseISO(call.trial_day)
@@ -176,7 +180,7 @@ export default function Dashboard() {
   }, [filteredCalls])
 
   const unreadCounts = useMemo(() => {
-    const counts = { all: 0, trial: 0, message: 0, question: 0, misc: 0, spam: 0 }
+    const counts = { all: 0, trial: 0, message: 0, question: 0, misc: 0, cancellation: 0, spam: 0 }
     enrichedCalls.forEach(c => {
       if (!c.read_at) {
         counts[c._category] = (counts[c._category] || 0) + 1
@@ -187,7 +191,7 @@ export default function Dashboard() {
   }, [enrichedCalls])
 
   const categoryCounts = useMemo(() => {
-    const counts = { all: 0, trial: 0, message: 0, question: 0, misc: 0, spam: 0 }
+    const counts = { all: 0, trial: 0, message: 0, question: 0, misc: 0, cancellation: 0, spam: 0 }
     enrichedCalls.forEach(c => {
       counts[c._category] = (counts[c._category] || 0) + 1
       counts.all += 1
