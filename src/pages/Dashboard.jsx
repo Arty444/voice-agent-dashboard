@@ -39,11 +39,17 @@ const CATEGORY_LABELS = {
 
 function categorizeCall(call) {
   if (call.is_spam) return 'spam'
+  const outcome = (call.final_outcome || '').toLowerCase()
+  if (outcome === 'spam') return 'spam'
+  if (outcome === 'message') return 'message'
+  if (outcome === 'info_only') return 'question'
+  if (outcome === 'cancelled') return 'cancellation'
+  if (outcome === 'booked' || outcome === 'rescheduled') return 'trial'
   if (call.category && call.category !== 'misc') return call.category
   const ct = (call.call_type || '').toLowerCase()
   const hasTrialDay = call.trial_day && call.trial_day.length > 0 && !['n/a', 'na', 'none'].includes(call.trial_day.toLowerCase())
-  if (call.is_lead || hasTrialDay) return 'trial'
   if (ct.includes('cancel')) return 'cancellation'
+  if (call.is_lead || hasTrialDay) return 'trial'
   if (ct.includes('question') || ct.includes('inquiry')) return 'question'
   if (ct.includes('message') || ct.includes('voicemail')) return 'message'
   return 'misc'

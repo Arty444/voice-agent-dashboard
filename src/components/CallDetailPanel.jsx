@@ -4,6 +4,8 @@ import Badge from './Badge'
 export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogglePin }) {
   if (!call) return null
 
+  const hasTrialDate = call.trial_day && !['n/a', 'na', 'none'].includes(call.trial_day.toLowerCase())
+
   function formatDuration(seconds) {
     if (!seconds) return '—'
     const m = Math.floor(seconds / 60)
@@ -13,6 +15,7 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
 
   function getOutcomeBadge(call) {
     if (call.is_spam) return 'Spam'
+    if (call.final_outcome) return call.final_outcome.replace('_', ' ')
     if (call.is_lead) return 'Booked'
     return call.call_type || 'Inquiry'
   }
@@ -126,7 +129,7 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
               <p className="text-xs text-gray-500 uppercase tracking-wide">Type</p>
               <p className="text-sm font-medium text-gray-900 mt-1">{call.call_type || '—'}</p>
             </div>
-            {call.trial_day && (
+            {hasTrialDate && (
               <>
                 <div>
                   <p className="text-xs text-gray-500 uppercase tracking-wide">Trial Day</p>

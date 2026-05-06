@@ -65,7 +65,11 @@ export default function Analytics() {
 
   // ---- Trials by program (donut) ----
   const programCounts = {}
-  calls.filter(c => !c.is_spam && c.program && c.program !== 'N/A' && (c.is_lead || (c.trial_day && c.trial_day.length > 0))).forEach(c => {
+  calls.filter(c => {
+    const outcome = (c.final_outcome || '').toLowerCase()
+    const activeTrial = c.is_lead || outcome === 'booked' || outcome === 'rescheduled'
+    return !c.is_spam && c.program && c.program !== 'N/A' && activeTrial
+  }).forEach(c => {
     programCounts[c.program] = (programCounts[c.program] || 0) + 1
   })
   const programData = Object.entries(programCounts)

@@ -68,6 +68,7 @@ export default function Calls() {
 
   function getOutcomeBadge(call) {
     if (call.is_spam) return 'Spam'
+    if (call.final_outcome) return call.final_outcome.replace('_', ' ')
     if (call.is_lead) return 'Booked'
     return 'Inquiry'
   }
