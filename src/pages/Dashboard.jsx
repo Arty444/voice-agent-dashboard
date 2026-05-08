@@ -122,6 +122,10 @@ function getCallTimeLabel(call) {
   }
 }
 
+function needsStaffFollowUp(call) {
+  return !call.handled && (call.needs_follow_up || call._category === 'trial')
+}
+
 function timeAgo(dateStr, timeStr) {
   if (!dateStr) return ''
   try {
@@ -202,7 +206,7 @@ export default function Dashboard() {
 
   const filteredByTab = useMemo(() => {
     if (activeTab === 'all') return enrichedCalls
-    if (activeTab === 'followup') return enrichedCalls.filter(c => c.needs_follow_up && !c.handled)
+    if (activeTab === 'followup') return enrichedCalls.filter(needsStaffFollowUp)
     return enrichedCalls.filter(c => c._category === activeTab)
   }, [enrichedCalls, activeTab])
 
@@ -221,8 +225,8 @@ export default function Dashboard() {
     return [...filteredCalls].sort((a, b) => {
       if (a.pinned && !b.pinned) return -1
       if (!a.pinned && b.pinned) return 1
-      if (a.needs_follow_up && !a.handled && !(b.needs_follow_up && !b.handled)) return -1
-      if (!(a.needs_follow_up && !a.handled) && b.needs_follow_up && !b.handled) return 1
+      if (needsStaffFollowUp(a) && !needsStaffFollowUp(b)) return -1
+      if (!needsStaffFollowUp(a) && needsStaffFollowUp(b)) return 1
       if (!a.handled && b.handled) return -1
       if (a.handled && !b.handled) return 1
       return new Date(b.created_at) - new Date(a.created_at)
@@ -234,7 +238,7 @@ export default function Dashboard() {
     enrichedCalls.forEach(c => {
       if (!c.read_at) {
         counts[c._category] = (counts[c._category] || 0) + 1
-        if (c.needs_follow_up && !c.handled) counts.followup += 1
+        if (needsStaffFollowUp(c)) counts.followup += 1
         counts.all += 1
       }
     })
@@ -245,7 +249,7 @@ export default function Dashboard() {
     const counts = { all: 0, followup: 0, trial: 0, message: 0, question: 0, misc: 0, cancellation: 0, spam: 0 }
     enrichedCalls.forEach(c => {
       counts[c._category] = (counts[c._category] || 0) + 1
-      if (c.needs_follow_up && !c.handled) counts.followup += 1
+      if (needsStaffFollowUp(c)) counts.followup += 1
       counts.all += 1
     })
     return counts
@@ -253,7 +257,7 @@ export default function Dashboard() {
 
   const totalCalls = enrichedCalls.length
   const trialsScheduled = enrichedCalls.filter(c => c._category === 'trial').length
-  const followUps = enrichedCalls.filter(c => c.needs_follow_up && !c.handled).length
+  const followUps = enrichedCalls.filter(needsStaffFollowUp).length
   const messages = enrichedCalls.filter(c => c._category === 'message').length
 
   if (loading) {
