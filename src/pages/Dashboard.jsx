@@ -4,13 +4,14 @@ import { useAuth } from '../context/AuthContext'
 import CallDetailPanel from '../components/CallDetailPanel'
 import branding from '../config/clientBranding'
 import {
-  Phone, CalendarCheck,
+  Phone, CalendarCheck, MessageSquare, AlertCircle,
   Pin, PinOff, CheckCircle2, Circle, Search, ChevronRight
 } from 'lucide-react'
 import { formatDistanceToNow, parseISO, subDays, format } from 'date-fns'
 
 const TABS = [
   { key: 'all', label: branding.tabs.all },
+  { key: 'followup', label: 'Needs Follow-Up' },
   { key: 'trial', label: branding.tabs.trial },
   { key: 'message', label: branding.tabs.message },
   { key: 'question', label: branding.tabs.question },
@@ -21,6 +22,7 @@ const TABS = [
 
 const CATEGORY_STYLES = {
   trial: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+  followup: { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' },
   message: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
   question: { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
   misc: { bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200' },
@@ -30,6 +32,7 @@ const CATEGORY_STYLES = {
 
 const CATEGORY_LABELS = {
   trial: 'Trial',
+  followup: 'Follow Up',
   message: 'Message',
   question: 'Question',
   misc: 'Other',
@@ -37,14 +40,23 @@ const CATEGORY_LABELS = {
   spam: 'Spam',
 }
 
+function isBlankValue(value) {
+  if (value === null || value === undefined) return true
+  return ['', 'n/a', 'na', 'none', 'null'].includes(String(value).trim().toLowerCase())
+}
+
+function normalizeChoice(value) {
+  return String(value || '').trim().toLowerCase().replace(/[\s-]+/g, '_')
+}
+
 function categorizeCall(call) {
   if (call.is_spam) return 'spam'
-  const outcome = (call.final_outcome || '').toLowerCase()
+  const outcome = normalizeChoice(call.final_outcome)
   if (outcome === 'spam') return 'spam'
   if (outcome === 'message') return 'message'
   if (outcome === 'info_only') return 'question'
-  if (outcome === 'cancelled') return 'cancellation'
-  if (outcome === 'booked' || outcome === 'rescheduled') return 'trial'
+  if (outcome === 'cancelled' || outcome === 'canceled') return 'cancellation'
+  if (outcome === 'booked' || outcome === 'book' || outcome === 'rescheduled') return 'trial'
   if (call.category && call.category !== 'misc') return call.category
   const ct = (call.call_type || '').toLowerCase()
   const hasTrialDay = call.trial_day && call.trial_day.length > 0 && !['n/a', 'na', 'none'].includes(call.trial_day.toLowerCase())
@@ -56,7 +68,7 @@ function categorizeCall(call) {
 }
 
 function getTrialLine(call) {
-  if (!call.trial_day || ['n/a', 'na', 'none'].includes(call.trial_day.toLowerCase())) return null
+  if (isBlankValue(call.trial_day)) return null
   const program = call.program || 'Class'
   try {
     const d = parseISO(call.trial_day)
@@ -72,13 +84,41 @@ function getTrialLine(call) {
 function getSummaryLine(call) {
   if (call.summary) {
     const clean = call.summary.replace(/^call_summary\s*/i, '').trim()
-    return clean.length > 120 ? clean.slice(0, 120) + '...' : clean
+    return clean.length > 150 ? clean.slice(0, 150) + '...' : clean
   }
   const cat = categorizeCall(call)
   if (cat === 'trial') return 'Trial class inquiry'
   if (cat === 'message') return 'Left a message — wants a callback'
   if (cat === 'question') return 'Had questions about classes'
   return 'General inquiry'
+}
+
+function getCallerName(call) {
+  return isBlankValue(call.caller_name) ? 'Unknown Caller' : call.caller_name
+}
+
+function getProgramName(call) {
+  return isBlankValue(call.program) ? null : call.program
+}
+
+function getActionLine(call) {
+  if (call.needs_follow_up) {
+    return isBlankValue(call.follow_up_reason) ? 'Staff follow-up requested' : call.follow_up_reason
+  }
+
+  const trialLine = getTrialLine(call)
+  if (trialLine) return trialLine
+
+  return getSummaryLine(call)
+}
+
+function getCallTimeLabel(call) {
+  if (!call.call_time) return ''
+  try {
+    return format(parseISO(`${call.call_date}T${call.call_time}`), 'h:mm a')
+  } catch {
+    return ''
+  }
 }
 
 function timeAgo(dateStr, timeStr) {
@@ -161,6 +201,7 @@ export default function Dashboard() {
 
   const filteredByTab = useMemo(() => {
     if (activeTab === 'all') return enrichedCalls
+    if (activeTab === 'followup') return enrichedCalls.filter(c => c.needs_follow_up && !c.handled)
     return enrichedCalls.filter(c => c._category === activeTab)
   }, [enrichedCalls, activeTab])
 
@@ -179,6 +220,8 @@ export default function Dashboard() {
     return [...filteredCalls].sort((a, b) => {
       if (a.pinned && !b.pinned) return -1
       if (!a.pinned && b.pinned) return 1
+      if (a.needs_follow_up && !a.handled && !(b.needs_follow_up && !b.handled)) return -1
+      if (!(a.needs_follow_up && !a.handled) && b.needs_follow_up && !b.handled) return 1
       if (!a.handled && b.handled) return -1
       if (a.handled && !b.handled) return 1
       return new Date(b.created_at) - new Date(a.created_at)
@@ -186,10 +229,11 @@ export default function Dashboard() {
   }, [filteredCalls])
 
   const unreadCounts = useMemo(() => {
-    const counts = { all: 0, trial: 0, message: 0, question: 0, misc: 0, cancellation: 0, spam: 0 }
+    const counts = { all: 0, followup: 0, trial: 0, message: 0, question: 0, misc: 0, cancellation: 0, spam: 0 }
     enrichedCalls.forEach(c => {
       if (!c.read_at) {
         counts[c._category] = (counts[c._category] || 0) + 1
+        if (c.needs_follow_up && !c.handled) counts.followup += 1
         counts.all += 1
       }
     })
@@ -197,9 +241,10 @@ export default function Dashboard() {
   }, [enrichedCalls])
 
   const categoryCounts = useMemo(() => {
-    const counts = { all: 0, trial: 0, message: 0, question: 0, misc: 0, cancellation: 0, spam: 0 }
+    const counts = { all: 0, followup: 0, trial: 0, message: 0, question: 0, misc: 0, cancellation: 0, spam: 0 }
     enrichedCalls.forEach(c => {
       counts[c._category] = (counts[c._category] || 0) + 1
+      if (c.needs_follow_up && !c.handled) counts.followup += 1
       counts.all += 1
     })
     return counts
@@ -207,6 +252,8 @@ export default function Dashboard() {
 
   const totalCalls = enrichedCalls.length
   const trialsScheduled = enrichedCalls.filter(c => c._category === 'trial').length
+  const followUps = enrichedCalls.filter(c => c.needs_follow_up && !c.handled).length
+  const messages = enrichedCalls.filter(c => c._category === 'message').length
 
   if (loading) {
     return (
@@ -253,9 +300,9 @@ export default function Dashboard() {
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
         {/* Inquiries Captured */}
-        <div className="rounded-xl border px-5 py-5" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
+        <div className="rounded-lg border px-5 py-4" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'rgba(24, 103, 192, 0.08)' }}>
               <Phone size={20} style={{ color: branding.colors.primary }} />
@@ -268,7 +315,7 @@ export default function Dashboard() {
         </div>
 
         {/* Trials Scheduled */}
-        <div className="rounded-xl border px-5 py-5" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
+        <div className="rounded-lg border px-5 py-4" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'rgba(72, 169, 166, 0.1)' }}>
               <CalendarCheck size={20} style={{ color: branding.colors.accent }} />
@@ -279,10 +326,36 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
+        {/* Follow-Ups */}
+        <div className="rounded-lg border px-5 py-4" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-rose-50">
+              <AlertCircle size={20} className="text-rose-600" />
+            </div>
+            <div>
+              <p className="text-xs font-medium" style={{ color: branding.colors.textSecondary }}>Needs Follow-Up</p>
+              <p className="text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{followUps}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Messages */}
+        <div className="rounded-lg border px-5 py-4" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-amber-50">
+              <MessageSquare size={20} className="text-amber-600" />
+            </div>
+            <div>
+              <p className="text-xs font-medium" style={{ color: branding.colors.textSecondary }}>Messages</p>
+              <p className="text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{messages}</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Activity feed */}
-      <div className="rounded-xl border" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
+      <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
         {/* Tabs */}
         <div className="flex border-b overflow-x-auto" style={{ borderColor: branding.colors.border }}>
           {TABS.map(tab => {
@@ -348,16 +421,20 @@ export default function Dashboard() {
           ) : (
             sortedCalls.map(call => {
               const cat = call._category
-              const style = CATEGORY_STYLES[cat] || CATEGORY_STYLES.misc
+              const rowCat = call.needs_follow_up && !call.handled ? 'followup' : cat
+              const style = CATEGORY_STYLES[rowCat] || CATEGORY_STYLES.misc
               const isUnread = !call.read_at
               const isHandled = call.handled
               const isPinned = call.pinned
-              const trialLine = getTrialLine(call)
+              const callerName = getCallerName(call)
+              const programName = getProgramName(call)
+              const actionLine = getActionLine(call)
+              const callTimeLabel = getCallTimeLabel(call)
 
               return (
                 <div
                   key={call.id}
-                  className={`flex items-start gap-3 px-4 py-4 cursor-pointer transition-colors hover:bg-slate-50 ${
+                  className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-slate-50 ${
                     isHandled ? 'opacity-50' : ''
                   }`}
                   style={{ backgroundColor: isUnread ? 'rgba(24, 103, 192, 0.03)' : 'transparent' }}
@@ -376,38 +453,41 @@ export default function Dashboard() {
                   {/* Main content */}
                   <div className="flex-1 min-w-0">
                     {/* Row 1: Name — Program — Category */}
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
                       {isUnread && (
                         <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: branding.colors.primary }} />
                       )}
-                      <span className={`text-sm truncate ${isUnread ? 'font-bold' : 'font-semibold'}`} style={{ color: branding.colors.text }}>
-                        {call.caller_name || 'Unknown Caller'}
+                      <span className={`text-sm ${isUnread ? 'font-bold' : 'font-semibold'}`} style={{ color: branding.colors.text }}>
+                        {callerName}
                       </span>
-                      {call.program && (
+                      {programName && (
                         <span className="text-[11px] font-medium px-1.5 py-0.5 rounded" style={{ backgroundColor: '#f1f5f9', color: '#475569' }}>
-                          {call.program}
+                          {programName}
                         </span>
                       )}
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide ${style.bg} ${style.text} ${style.border} border flex-shrink-0`}>
-                        {CATEGORY_LABELS[cat]}
+                        {CATEGORY_LABELS[rowCat]}
                       </span>
                       {isPinned && (
                         <Pin size={12} className="text-amber-500 flex-shrink-0" />
                       )}
                     </div>
 
-                    {/* Row 2: Scheduled trial line (if applicable) */}
-                    {trialLine && (
-                      <p className="text-sm mb-1" style={{ color: branding.colors.accent, fontWeight: 500 }}>
-                        {trialLine}
-                      </p>
-                    )}
+                    {/* Row 2: Staff action line */}
+                    <p className="text-sm mb-1 leading-snug" style={{ color: rowCat === 'followup' ? '#be123c' : branding.colors.textSecondary, fontWeight: rowCat === 'trial' || rowCat === 'followup' ? 600 : 500 }}>
+                      {actionLine}
+                    </p>
 
                     {/* Row 3: Bold phone number — When they called */}
-                    <div className="flex items-center gap-3 mt-0.5">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
                       <span className="text-sm font-bold" style={{ color: branding.colors.text }}>
                         {call.caller_phone || 'No phone number'}
                       </span>
+                      {callTimeLabel && (
+                        <span className="text-xs" style={{ color: '#64748b' }}>
+                          {callTimeLabel}
+                        </span>
+                      )}
                       <span className="text-xs" style={{ color: '#94a3b8' }}>
                         {timeAgo(call.call_date, call.call_time)}
                       </span>
