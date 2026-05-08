@@ -15,8 +15,8 @@ const TABS = [
   { key: 'trial', label: branding.tabs.trial },
   { key: 'message', label: branding.tabs.message },
   { key: 'question', label: branding.tabs.question },
-  { key: 'misc', label: branding.tabs.misc },
   { key: 'cancellation', label: branding.tabs.cancellation },
+  { key: 'misc', label: branding.tabs.misc },
   { key: 'spam', label: 'Spam' },
 ]
 
@@ -57,6 +57,7 @@ function categorizeCall(call) {
   if (outcome === 'info_only') return 'question'
   if (outcome === 'cancelled' || outcome === 'canceled') return 'cancellation'
   if (outcome === 'booked' || outcome === 'book' || outcome === 'rescheduled') return 'trial'
+  if (outcome === 'abandoned') return 'misc'
   if (call.category && call.category !== 'misc') return call.category
   const ct = (call.call_type || '').toLowerCase()
   const hasTrialDay = call.trial_day && call.trial_day.length > 0 && !['n/a', 'na', 'none'].includes(call.trial_day.toLowerCase())
