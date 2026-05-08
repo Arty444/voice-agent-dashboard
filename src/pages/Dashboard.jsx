@@ -257,9 +257,9 @@ export default function Dashboard() {
   }, [enrichedCalls])
 
   const totalCalls = enrichedCalls.length
-  const trialsScheduled = enrichedCalls.filter(c => c._category === 'trial').length
-  const followUps = enrichedCalls.filter(needsStaffFollowUp).length
-  const messages = enrichedCalls.filter(c => c._category === 'message').length
+  const trialsScheduled = categoryCounts.trial
+  const followUps = categoryCounts.followup
+  const messages = categoryCounts.message
 
   if (loading) {
     return (
