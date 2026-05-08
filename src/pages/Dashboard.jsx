@@ -20,6 +20,8 @@ const TABS = [
   { key: 'spam', label: 'Spam' },
 ]
 
+const CALLS_PER_PAGE = 15
+
 const CATEGORY_STYLES = {
   trial: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
   followup: { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' },
@@ -155,6 +157,7 @@ export default function Dashboard() {
   const [selectedCall, setSelectedCall] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [dayRange, setDayRange] = useState(7)
+  const [currentPage, setCurrentPage] = useState(1)
 
   const clientId = clientData?.id
 
@@ -162,6 +165,10 @@ export default function Dashboard() {
     if (!clientId && !isAdmin) return
     fetchCalls()
   }, [clientId, isAdmin, dayRange])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [activeTab, searchQuery, dayRange])
 
   async function fetchCalls() {
     const cutoff = subDays(new Date(), dayRange).toISOString().split('T')[0]
@@ -232,6 +239,16 @@ export default function Dashboard() {
       return new Date(b.created_at) - new Date(a.created_at)
     })
   }, [filteredCalls])
+
+  const totalPages = Math.max(1, Math.ceil(sortedCalls.length / CALLS_PER_PAGE))
+  const paginatedCalls = useMemo(() => {
+    const start = (currentPage - 1) * CALLS_PER_PAGE
+    return sortedCalls.slice(start, start + CALLS_PER_PAGE)
+  }, [sortedCalls, currentPage])
+
+  useEffect(() => {
+    setCurrentPage(page => Math.min(page, totalPages))
+  }, [totalPages])
 
   const unreadCounts = useMemo(() => {
     const counts = { all: 0, followup: 0, trial: 0, message: 0, question: 0, misc: 0, cancellation: 0, spam: 0 }
@@ -425,7 +442,7 @@ export default function Dashboard() {
               <p className="text-sm" style={{ color: '#94a3b8' }}>No activity in this category</p>
             </div>
           ) : (
-            sortedCalls.map(call => {
+            paginatedCalls.map(call => {
               const cat = call._category
               const rowCat = call.needs_follow_up && !call.handled ? 'followup' : cat
               const style = CATEGORY_STYLES[rowCat] || CATEGORY_STYLES.misc
@@ -517,6 +534,50 @@ export default function Dashboard() {
             })
           )}
         </div>
+
+        {sortedCalls.length > CALLS_PER_PAGE && (
+          <div className="flex flex-col gap-3 border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-between" style={{ borderColor: '#f1f5f9' }}>
+            <p className="text-xs font-medium" style={{ color: branding.colors.textSecondary }}>
+              Showing {(currentPage - 1) * CALLS_PER_PAGE + 1}-{Math.min(currentPage * CALLS_PER_PAGE, sortedCalls.length)} of {sortedCalls.length}
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
+                disabled={currentPage === 1}
+                className="rounded-md border px-3 py-1.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+                style={{ borderColor: branding.colors.border, color: branding.colors.textSecondary }}
+              >
+                Previous
+              </button>
+              {Array.from({ length: totalPages }, (_, index) => {
+                const page = index + 1
+                const isActive = page === currentPage
+                return (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className="flex h-8 min-w-8 items-center justify-center rounded-md border px-2 text-xs font-semibold"
+                    style={{
+                      backgroundColor: isActive ? branding.colors.primary : branding.colors.card,
+                      borderColor: isActive ? branding.colors.primary : branding.colors.border,
+                      color: isActive ? '#ffffff' : branding.colors.textSecondary,
+                    }}
+                  >
+                    {page}
+                  </button>
+                )
+              })}
+              <button
+                onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
+                disabled={currentPage === totalPages}
+                className="rounded-md border px-3 py-1.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+                style={{ borderColor: branding.colors.border, color: branding.colors.textSecondary }}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Call detail panel */}
