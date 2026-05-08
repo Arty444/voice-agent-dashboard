@@ -1,7 +1,7 @@
-import { X, Clock, Phone, User, MessageSquare, Pin, PinOff, CheckCircle2, Circle, PhoneCall } from 'lucide-react'
+import { X, User, MessageSquare, Pin, PinOff, CheckCircle2, Circle, Trash2 } from 'lucide-react'
 import Badge from './Badge'
 
-export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogglePin }) {
+export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogglePin, onDelete }) {
   if (!call) return null
 
   const hasTrialDate = call.trial_day && !['n/a', 'na', 'none'].includes(call.trial_day.toLowerCase())
@@ -38,7 +38,7 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Caller info with call-back button */}
+          {/* Caller info with delete button */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
@@ -49,14 +49,14 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
                 <p className="text-sm text-gray-500">{call.caller_phone || '—'}</p>
               </div>
             </div>
-            {call.caller_phone && (
-              <a
-                href={`tel:${call.caller_phone}`}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+            {onDelete && !call.deleted_at && (
+              <button
+                onClick={() => onDelete(call.id)}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
               >
-                <PhoneCall size={16} />
-                Call Back
-              </a>
+                <Trash2 size={16} />
+                Delete
+              </button>
             )}
           </div>
 

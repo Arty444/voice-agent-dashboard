@@ -10,7 +10,7 @@ import {
 import { formatDistanceToNow, parseISO, subDays, format } from 'date-fns'
 
 const TABS = [
-  { key: 'all', label: branding.tabs.all },
+  { key: 'all', label: 'All Calls' },
   { key: 'followup', label: 'Needs Follow-Up' },
   { key: 'trial', label: branding.tabs.trial },
   { key: 'message', label: branding.tabs.message },
@@ -18,6 +18,7 @@ const TABS = [
   { key: 'cancellation', label: branding.tabs.cancellation },
   { key: 'misc', label: branding.tabs.misc },
   { key: 'spam', label: 'Spam' },
+  { key: 'deleted', label: 'Deleted Calls' },
 ]
 
 const CALLS_PER_PAGE = 15
@@ -30,6 +31,7 @@ const CATEGORY_STYLES = {
   misc: { bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200' },
   cancellation: { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
   spam: { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200' },
+  deleted: { bg: 'bg-zinc-50', text: 'text-zinc-600', border: 'border-zinc-200' },
 }
 
 const CATEGORY_LABELS = {
@@ -40,6 +42,7 @@ const CATEGORY_LABELS = {
   misc: 'Other',
   cancellation: 'Cancel',
   spam: 'Spam',
+  deleted: 'Deleted',
 }
 
 function isBlankValue(value) {
@@ -199,6 +202,18 @@ export default function Dashboard() {
     setCalls(prev => prev.map(c => c.id === callId ? { ...c, handled: newHandled } : c))
   }
 
+  async function deleteCall(callId) {
+    const deletedAt = new Date().toISOString()
+    const { error } = await supabase.from('calls').update({ deleted_at: deletedAt, handled: true }).eq('id', callId)
+    if (error) {
+      window.alert('Could not delete this call yet. The deleted_at column may need to be added in Supabase.')
+      return
+    }
+    setCalls(prev => prev.map(c => c.id === callId ? { ...c, deleted_at: deletedAt, handled: true } : c))
+    setSelectedCall(null)
+    setActiveTab('deleted')
+  }
+
   async function markAsRead(call) {
     if (!call.read_at) {
       await supabase.from('calls').update({ read_at: new Date().toISOString() }).eq('id', call.id)
@@ -211,11 +226,20 @@ export default function Dashboard() {
     return calls.map(c => ({ ...c, _category: categorizeCall(c) }))
   }, [calls])
 
+  const activeCalls = useMemo(() => {
+    return enrichedCalls.filter(c => !c.deleted_at)
+  }, [enrichedCalls])
+
+  const deletedCalls = useMemo(() => {
+    return enrichedCalls.filter(c => c.deleted_at)
+  }, [enrichedCalls])
+
   const filteredByTab = useMemo(() => {
-    if (activeTab === 'all') return enrichedCalls
-    if (activeTab === 'followup') return enrichedCalls.filter(needsStaffFollowUp)
-    return enrichedCalls.filter(c => c._category === activeTab)
-  }, [enrichedCalls, activeTab])
+    if (activeTab === 'deleted') return deletedCalls
+    if (activeTab === 'all') return activeCalls
+    if (activeTab === 'followup') return activeCalls.filter(needsStaffFollowUp)
+    return activeCalls.filter(c => c._category === activeTab)
+  }, [activeCalls, deletedCalls, activeTab])
 
   const filteredCalls = useMemo(() => {
     if (!searchQuery.trim()) return filteredByTab
@@ -251,8 +275,8 @@ export default function Dashboard() {
   }, [totalPages])
 
   const unreadCounts = useMemo(() => {
-    const counts = { all: 0, followup: 0, trial: 0, message: 0, question: 0, misc: 0, cancellation: 0, spam: 0 }
-    enrichedCalls.forEach(c => {
+    const counts = { all: 0, followup: 0, trial: 0, message: 0, question: 0, misc: 0, cancellation: 0, spam: 0, deleted: 0 }
+    activeCalls.forEach(c => {
       if (!c.read_at) {
         counts[c._category] = (counts[c._category] || 0) + 1
         if (needsStaffFollowUp(c)) counts.followup += 1
@@ -260,18 +284,19 @@ export default function Dashboard() {
       }
     })
     return counts
-  }, [enrichedCalls])
+  }, [activeCalls])
 
   const categoryCounts = useMemo(() => {
-    const counts = { all: 0, followup: 0, trial: 0, message: 0, question: 0, misc: 0, cancellation: 0, spam: 0 }
-    enrichedCalls.forEach(c => {
+    const counts = { all: 0, followup: 0, trial: 0, message: 0, question: 0, misc: 0, cancellation: 0, spam: 0, deleted: 0 }
+    activeCalls.forEach(c => {
       if (c.handled) return
       counts[c._category] = (counts[c._category] || 0) + 1
       if (needsStaffFollowUp(c)) counts.followup += 1
       counts.all += 1
     })
+    counts.deleted = deletedCalls.length
     return counts
-  }, [enrichedCalls])
+  }, [activeCalls, deletedCalls])
 
   const totalCalls = enrichedCalls.length
   const trialsScheduled = categoryCounts.trial
@@ -444,7 +469,7 @@ export default function Dashboard() {
           ) : (
             paginatedCalls.map(call => {
               const cat = call._category
-              const rowCat = call.needs_follow_up && !call.handled ? 'followup' : cat
+              const rowCat = activeTab === 'deleted' ? 'deleted' : call.needs_follow_up && !call.handled ? 'followup' : cat
               const style = CATEGORY_STYLES[rowCat] || CATEGORY_STYLES.misc
               const isUnread = !call.read_at
               const isHandled = call.handled
@@ -593,6 +618,7 @@ export default function Dashboard() {
             togglePin(id, current)
             setSelectedCall(prev => prev ? { ...prev, pinned: !current } : null)
           }}
+          onDelete={deleteCall}
         />
       )}
     </div>
