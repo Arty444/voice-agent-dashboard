@@ -214,6 +214,17 @@ export default function Dashboard() {
     setActiveTab('deleted')
   }
 
+  async function undeleteCall(callId) {
+    const { error } = await supabase.from('calls').update({ deleted_at: null, handled: false }).eq('id', callId)
+    if (error) {
+      window.alert('Could not undelete this call. Please try again.')
+      return
+    }
+    setCalls(prev => prev.map(c => c.id === callId ? { ...c, deleted_at: null, handled: false } : c))
+    setSelectedCall(prev => prev ? { ...prev, deleted_at: null, handled: false } : null)
+    setActiveTab('all')
+  }
+
   async function markAsRead(call) {
     if (!call.read_at) {
       await supabase.from('calls').update({ read_at: new Date().toISOString() }).eq('id', call.id)
@@ -619,6 +630,7 @@ export default function Dashboard() {
             setSelectedCall(prev => prev ? { ...prev, pinned: !current } : null)
           }}
           onDelete={deleteCall}
+          onUndelete={undeleteCall}
         />
       )}
     </div>

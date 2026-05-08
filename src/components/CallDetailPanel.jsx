@@ -1,7 +1,7 @@
-import { X, User, MessageSquare, Pin, PinOff, CheckCircle2, Circle, Trash2 } from 'lucide-react'
+import { X, User, MessageSquare, Pin, PinOff, CheckCircle2, Circle, RotateCcw, Trash2 } from 'lucide-react'
 import Badge from './Badge'
 
-export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogglePin, onDelete }) {
+export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogglePin, onDelete, onUndelete }) {
   if (!call) return null
 
   const hasTrialDate = call.trial_day && !['n/a', 'na', 'none'].includes(call.trial_day.toLowerCase())
@@ -49,7 +49,15 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
                 <p className="text-sm text-gray-500">{call.caller_phone || '—'}</p>
               </div>
             </div>
-            {onDelete && !call.deleted_at && (
+            {call.deleted_at && onUndelete ? (
+              <button
+                onClick={() => onUndelete(call.id)}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
+              >
+                <RotateCcw size={16} />
+                Undelete
+              </button>
+            ) : onDelete && (
               <button
                 onClick={() => onDelete(call.id)}
                 className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
