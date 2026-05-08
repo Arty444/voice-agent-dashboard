@@ -1,19 +1,118 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import branding from '../config/clientBranding'
 import {
-  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
+  Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart,
+  ResponsiveContainer, Tooltip, XAxis, YAxis
 } from 'recharts'
-import { format, subWeeks, startOfWeek, parseISO, getDay, getHours } from 'date-fns'
+import {
+  AlertCircle, CalendarCheck, CheckCircle2, Clock, MessageSquare,
+  Phone, Target, TrendingUp, Users
+} from 'lucide-react'
+import {
+  differenceInCalendarDays, format, getDay, parseISO, startOfDay, subDays
+} from 'date-fns'
 
-const COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6']
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const PROGRAM_COLORS = ['#1867C0', '#48A9A6', '#f59e0b', '#ef4444', '#8b5cf6']
+const RANGE_OPTIONS = [
+  { label: '7 Days', days: 7 },
+  { label: '30 Days', days: 30 },
+  { label: '90 Days', days: 90 },
+]
+
+function normalizeChoice(value) {
+  return String(value || '').trim().toLowerCase().replace(/[\s-]+/g, '_')
+}
+
+function isBlankValue(value) {
+  if (value === null || value === undefined) return true
+  return ['', 'n/a', 'na', 'none', 'null'].includes(String(value).trim().toLowerCase())
+}
+
+function getCategory(call) {
+  if (call.deleted_at) return 'deleted'
+  if (call.is_spam) return 'spam'
+  const outcome = normalizeChoice(call.final_outcome)
+  if (outcome === 'spam') return 'spam'
+  if (outcome === 'message') return 'message'
+  if (outcome === 'info_only') return 'question'
+  if (outcome === 'cancelled' || outcome === 'canceled') return 'cancellation'
+  if (outcome === 'booked' || outcome === 'book' || outcome === 'rescheduled') return 'trial'
+  if (outcome === 'abandoned') return 'other'
+
+  const callType = String(call.call_type || '').toLowerCase()
+  const hasTrialDay = !isBlankValue(call.trial_day)
+  if (callType.includes('cancel')) return 'cancellation'
+  if (call.is_lead || hasTrialDay) return 'trial'
+  if (callType.includes('question') || callType.includes('inquiry')) return 'question'
+  if (callType.includes('message') || callType.includes('voicemail')) return 'message'
+  return 'other'
+}
+
+function isTrial(call) {
+  return getCategory(call) === 'trial'
+}
+
+function isOpenFollowUp(call) {
+  return !call.deleted_at && !call.handled && (call.needs_follow_up || isTrial(call))
+}
+
+function formatPercent(value) {
+  if (!Number.isFinite(value)) return '0%'
+  return `${Math.round(value)}%`
+}
+
+function formatMinutes(seconds) {
+  if (!seconds) return '0m'
+  const minutes = Math.round(seconds / 60)
+  return `${minutes}m`
+}
+
+function metricDelta(current, previous) {
+  if (previous === 0 && current > 0) return 'New activity'
+  if (previous === 0) return 'No prior activity'
+  const change = ((current - previous) / previous) * 100
+  const sign = change > 0 ? '+' : ''
+  return `${sign}${Math.round(change)}% vs prior period`
+}
+
+function StatCard({ icon: Icon, label, value, detail, tone = 'blue' }) {
+  const tones = {
+    blue: ['rgba(24, 103, 192, 0.08)', branding.colors.primary],
+    teal: ['rgba(72, 169, 166, 0.1)', branding.colors.accent],
+    amber: ['#fffbeb', '#d97706'],
+    rose: ['#fff1f2', '#e11d48'],
+    slate: ['#f8fafc', '#475569'],
+  }
+  const [bg, color] = tones[tone] || tones.blue
+
+  return (
+    <div className="rounded-lg border px-5 py-4" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
+      <div className="flex items-start gap-3">
+        <div className="rounded-lg p-2.5" style={{ backgroundColor: bg }}>
+          <Icon size={20} style={{ color }} />
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs font-semibold" style={{ color: branding.colors.textSecondary }}>{label}</p>
+          <p className="mt-1 text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{value}</p>
+          {detail && <p className="mt-1 text-xs" style={{ color: branding.colors.textSecondary }}>{detail}</p>}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function EmptyChart() {
+  return <div className="flex h-full items-center justify-center text-sm text-slate-400">No call data yet</div>
+}
 
 export default function Analytics() {
   const { clientData, isAdmin } = useAuth()
   const [calls, setCalls] = useState([])
   const [loading, setLoading] = useState(true)
+  const [rangeDays, setRangeDays] = useState(30)
 
   const clientId = clientData?.id
 
@@ -37,249 +136,396 @@ export default function Analytics() {
     setLoading(false)
   }
 
-  // ---- Weekly trends (last 12 weeks) ----
-  const now = new Date()
-  const weeklyData = []
-  for (let i = 11; i >= 0; i--) {
-    const weekStart = startOfWeek(subWeeks(now, i), { weekStartsOn: 1 })
-    const weekEnd = startOfWeek(subWeeks(now, i - 1), { weekStartsOn: 1 })
-    const label = format(weekStart, 'MMM d')
+  const analytics = useMemo(() => {
+    const today = startOfDay(new Date())
+    const currentStart = subDays(today, rangeDays - 1)
+    const priorStart = subDays(currentStart, rangeDays)
 
-    const weekCalls = calls.filter(c => {
-      if (!c.call_date) return false
-      const d = parseISO(c.call_date)
-      return d >= weekStart && d < weekEnd
-    })
+    const withMeta = calls.map(call => ({
+      ...call,
+      _category: getCategory(call),
+      _date: call.call_date ? parseISO(call.call_date) : null,
+    }))
 
-    const nonSpam = weekCalls.filter(c => !c.is_spam)
-    const leads = weekCalls.filter(c => c.is_lead)
-    const rate = nonSpam.length > 0 ? Math.round((leads.length / nonSpam.length) * 100) : 0
+    const active = withMeta.filter(call => !call.deleted_at)
+    const current = active.filter(call => call._date && call._date >= currentStart && call._date <= today)
+    const previous = active.filter(call => call._date && call._date >= priorStart && call._date < currentStart)
+    const nonSpam = current.filter(call => call._category !== 'spam')
+    const trials = current.filter(isTrial)
+    const openFollowUps = current.filter(isOpenFollowUp)
+    const messages = current.filter(call => call._category === 'message')
+    const questions = current.filter(call => call._category === 'question')
+    const cancellations = current.filter(call => call._category === 'cancellation')
+    const handled = current.filter(call => call.handled)
+    const avgDuration = current.length
+      ? current.reduce((sum, call) => sum + (call.duration_seconds || 0), 0) / current.length
+      : 0
 
-    weeklyData.push({
-      week: label,
-      calls: weekCalls.length,
-      leads: leads.length,
-      conversionRate: rate,
-    })
-  }
+    const priorTrials = previous.filter(isTrial)
+    const trialRate = nonSpam.length ? (trials.length / nonSpam.length) * 100 : 0
+    const handledRate = current.length ? (handled.length / current.length) * 100 : 0
 
-  // ---- Trials by program (donut) ----
-  const programCounts = {}
-  calls.filter(c => {
-    const outcome = (c.final_outcome || '').toLowerCase()
-    const activeTrial = c.is_lead || outcome === 'booked' || outcome === 'rescheduled'
-    return !c.is_spam && c.program && c.program !== 'N/A' && activeTrial
-  }).forEach(c => {
-    programCounts[c.program] = (programCounts[c.program] || 0) + 1
-  })
-  const programData = Object.entries(programCounts)
-    .map(([name, value]) => ({ name, value }))
-    .sort((a, b) => b.value - a.value)
-
-  // ---- Calls by day of week ----
-  const dayOfWeekCounts = Array(7).fill(0)
-  calls.forEach(c => {
-    if (c.call_date) {
-      const day = getDay(parseISO(c.call_date))
-      dayOfWeekCounts[day]++
+    const dailyMap = new Map()
+    for (let i = rangeDays - 1; i >= 0; i--) {
+      const date = subDays(today, i)
+      const key = format(date, 'yyyy-MM-dd')
+      dailyMap.set(key, {
+        date: key,
+        label: rangeDays <= 7 ? format(date, 'EEE') : format(date, 'MMM d'),
+        calls: 0,
+        trials: 0,
+        followUps: 0,
+      })
     }
-  })
-  const dayOfWeekData = DAYS.map((name, i) => ({ day: name, calls: dayOfWeekCounts[i] }))
-
-  // ---- Heatmap: hours vs days ----
-  const heatmapData = []
-  const heatCounts = {}
-  calls.forEach(c => {
-    if (c.call_date && c.call_time) {
-      const day = getDay(parseISO(c.call_date))
-      const hour = parseInt(c.call_time.split(':')[0], 10)
-      const key = `${day}-${hour}`
-      heatCounts[key] = (heatCounts[key] || 0) + 1
-    }
-  })
-
-  // ---- Sentiment over time ----
-  const sentimentWeekly = weeklyData.map((w, i) => {
-    const weekStart = startOfWeek(subWeeks(now, 11 - i), { weekStartsOn: 1 })
-    const weekEnd = startOfWeek(subWeeks(now, 10 - i), { weekStartsOn: 1 })
-
-    const weekCalls = calls.filter(c => {
-      if (!c.call_date) return false
-      const d = parseISO(c.call_date)
-      return d >= weekStart && d < weekEnd
+    current.forEach(call => {
+      if (!call.call_date || !dailyMap.has(call.call_date)) return
+      const day = dailyMap.get(call.call_date)
+      day.calls += 1
+      if (isTrial(call)) day.trials += 1
+      if (isOpenFollowUp(call)) day.followUps += 1
     })
+
+    const categoryData = [
+      { name: 'Trials', value: trials.length, fill: '#22c55e' },
+      { name: 'Messages', value: messages.length, fill: '#f59e0b' },
+      { name: 'Questions', value: questions.length, fill: '#38bdf8' },
+      { name: 'Cancellations', value: cancellations.length, fill: '#f97316' },
+      { name: 'Other', value: current.filter(call => call._category === 'other').length, fill: '#94a3b8' },
+      { name: 'Spam', value: current.filter(call => call._category === 'spam').length, fill: '#ef4444' },
+    ].filter(item => item.value > 0)
+
+    const programCounts = {}
+    trials.forEach(call => {
+      const program = isBlankValue(call.program) ? 'Unknown Program' : call.program
+      programCounts[program] = (programCounts[program] || 0) + 1
+    })
+    const programData = Object.entries(programCounts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+
+    const dayCounts = Array(7).fill(0)
+    const trialDayCounts = Array(7).fill(0)
+    current.forEach(call => {
+      if (!call._date) return
+      const day = getDay(call._date)
+      dayCounts[day] += 1
+      if (isTrial(call)) trialDayCounts[day] += 1
+    })
+    const dayData = DAYS.map((day, index) => ({
+      day,
+      calls: dayCounts[index],
+      trials: trialDayCounts[index],
+    }))
+
+    const hourBuckets = [
+      { label: 'Morning', start: 5, end: 11, calls: 0, trials: 0 },
+      { label: 'Midday', start: 11, end: 15, calls: 0, trials: 0 },
+      { label: 'Afternoon', start: 15, end: 18, calls: 0, trials: 0 },
+      { label: 'Evening', start: 18, end: 23, calls: 0, trials: 0 },
+    ]
+    current.forEach(call => {
+      if (!call.call_time) return
+      const hour = Number.parseInt(call.call_time.split(':')[0], 10)
+      const bucket = hourBuckets.find(item => hour >= item.start && hour < item.end)
+      if (!bucket) return
+      bucket.calls += 1
+      if (isTrial(call)) bucket.trials += 1
+    })
+
+    const recentOpen = current
+      .filter(call => !call.handled && !call.deleted_at)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, 6)
+
+    const staleFollowUps = openFollowUps.filter(call => {
+      if (!call._date) return false
+      return differenceInCalendarDays(today, call._date) >= 2
+    })
+
+    const insights = [
+      {
+        title: 'Open Work',
+        body: openFollowUps.length
+          ? `${openFollowUps.length} calls need staff follow-up. ${staleFollowUps.length} have been waiting 2+ days.`
+          : 'No open follow-up work in this period.',
+        tone: openFollowUps.length ? 'rose' : 'teal',
+      },
+      {
+        title: 'Trial Demand',
+        body: trials.length
+          ? `${trials.length} trials booked from ${nonSpam.length} real calls. Booking rate is ${formatPercent(trialRate)}.`
+          : 'No trials booked in this period yet.',
+        tone: trials.length ? 'teal' : 'amber',
+      },
+      {
+        title: 'Owner Watchlist',
+        body: cancellations.length
+          ? `${cancellations.length} cancellation-related calls came in. Review transcripts for save opportunities or service issues.`
+          : 'No cancellation calls in this period.',
+        tone: cancellations.length ? 'amber' : 'slate',
+      },
+    ]
 
     return {
-      week: w.week,
-      positive: weekCalls.filter(c => c.sentiment?.toLowerCase() === 'positive').length,
-      neutral: weekCalls.filter(c => c.sentiment?.toLowerCase() === 'neutral').length,
-      negative: weekCalls.filter(c => c.sentiment?.toLowerCase() === 'negative').length,
+      totalCalls: current.length,
+      priorCalls: previous.length,
+      nonSpam: nonSpam.length,
+      trials: trials.length,
+      priorTrials: priorTrials.length,
+      trialRate,
+      openFollowUps: openFollowUps.length,
+      messages: messages.length,
+      questions: questions.length,
+      cancellations: cancellations.length,
+      handledRate,
+      avgDuration,
+      dailyData: Array.from(dailyMap.values()),
+      categoryData,
+      programData,
+      dayData,
+      hourBuckets,
+      recentOpen,
+      insights,
     }
-  })
+  }, [calls, rangeDays])
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full" />
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full" style={{ borderWidth: 4, borderColor: branding.colors.primary, borderTopColor: 'transparent' }} />
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Analytics</h1>
-        <p className="text-sm text-gray-500 mt-1">Trends and insights over time</p>
-      </div>
-
-      {/* Calls per week + Leads per week */}
-      <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Calls Per Week</h2>
-          <div className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={weeklyData}>
-                <XAxis dataKey="week" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip />
-                <Line type="monotone" dataKey="calls" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+    <div className="space-y-6" style={{ fontFamily: "'Poppins', sans-serif" }}>
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text, fontSize: '1.75rem', letterSpacing: '0.01em' }}>
+            Owner Analytics
+          </h1>
+          <p className="mt-0.5 text-sm" style={{ color: branding.colors.textSecondary }}>
+            How the phone agent is affecting trials, staff follow-up, and member experience.
+          </p>
         </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Leads Per Week</h2>
-          <div className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={weeklyData}>
-                <XAxis dataKey="week" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip />
-                <Line type="monotone" dataKey="leads" stroke="#22c55e" strokeWidth={2} dot={{ r: 3 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+        <div className="flex overflow-hidden rounded-lg border" style={{ borderColor: branding.colors.border }}>
+          {RANGE_OPTIONS.map(option => (
+            <button
+              key={option.days}
+              onClick={() => setRangeDays(option.days)}
+              className="px-3 py-1.5 text-sm font-semibold transition-colors"
+              style={{
+                backgroundColor: rangeDays === option.days ? branding.colors.primary : branding.colors.card,
+                color: rangeDays === option.days ? '#ffffff' : branding.colors.textSecondary,
+              }}
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Conversion rate + Programs donut */}
-      <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Conversion Rate Trend</h2>
-          <div className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={weeklyData}>
-                <XAxis dataKey="week" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis unit="%" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip formatter={v => `${v}%`} />
-                <Line type="monotone" dataKey="conversionRate" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <StatCard
+          icon={Phone}
+          label="Real Calls"
+          value={analytics.nonSpam}
+          detail={`${analytics.totalCalls} total including spam`}
+        />
+        <StatCard
+          icon={CalendarCheck}
+          label="Trials Scheduled"
+          value={analytics.trials}
+          detail={metricDelta(analytics.trials, analytics.priorTrials)}
+          tone="teal"
+        />
+        <StatCard
+          icon={Target}
+          label="Booking Rate"
+          value={formatPercent(analytics.trialRate)}
+          detail="Trials divided by non-spam calls"
+          tone="amber"
+        />
+        <StatCard
+          icon={AlertCircle}
+          label="Open Follow-Up"
+          value={analytics.openFollowUps}
+          detail={`${formatPercent(analytics.handledRate)} handled this period`}
+          tone={analytics.openFollowUps ? 'rose' : 'teal'}
+        />
+      </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Trials by Program</h2>
-          <div className="h-56">
-            {programData.length === 0 ? (
-              <div className="flex items-center justify-center h-full text-gray-400 text-sm">No data</div>
-            ) : (
+      <div className="grid gap-3 lg:grid-cols-3">
+        {analytics.insights.map(insight => (
+          <div key={insight.title} className="rounded-lg border p-4" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
+            <p className="text-sm font-bold" style={{ color: branding.colors.text }}>{insight.title}</p>
+            <p className="mt-1 text-sm leading-relaxed" style={{ color: branding.colors.textSecondary }}>{insight.body}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-3">
+        <div className="rounded-lg border p-5 xl:col-span-2" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold" style={{ color: branding.colors.text }}>Call Volume and Trial Bookings</h2>
+              <p className="text-xs" style={{ color: branding.colors.textSecondary }}>Daily trend for the selected period</p>
+            </div>
+            <TrendingUp size={18} style={{ color: branding.colors.primary }} />
+          </div>
+          <div className="h-72">
+            {analytics.dailyData.some(day => day.calls > 0) ? (
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={programData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={2}
-                  >
-                    {programData.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Pie>
+                <LineChart data={analytics.dailyData} margin={{ top: 8, right: 12, bottom: 0, left: -18 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="label" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
                   <Tooltip />
                   <Legend />
+                  <Line type="monotone" dataKey="calls" name="Calls" stroke={branding.colors.primary} strokeWidth={2.5} dot={false} />
+                  <Line type="monotone" dataKey="trials" name="Trials" stroke={branding.colors.accent} strokeWidth={2.5} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="followUps" name="Open Follow-Up" stroke="#e11d48" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : <EmptyChart />}
+          </div>
+        </div>
+
+        <div className="rounded-lg border p-5" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
+          <h2 className="text-base font-bold" style={{ color: branding.colors.text }}>Call Outcomes</h2>
+          <p className="mb-4 text-xs" style={{ color: branding.colors.textSecondary }}>What callers needed from the front desk</p>
+          <div className="h-72">
+            {analytics.categoryData.length ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={analytics.categoryData} dataKey="value" nameKey="name" cx="50%" cy="45%" innerRadius={55} outerRadius={88} paddingAngle={2}>
+                    {analytics.categoryData.map(item => <Cell key={item.name} fill={item.fill} />)}
+                  </Pie>
+                  <Tooltip />
+                  <Legend verticalAlign="bottom" />
                 </PieChart>
               </ResponsiveContainer>
-            )}
+            ) : <EmptyChart />}
           </div>
         </div>
       </div>
 
-      {/* Day of week + Sentiment */}
-      <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Calls by Day of Week</h2>
-          <div className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dayOfWeekData} barSize={28}>
-                <XAxis dataKey="day" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip />
-                <Bar dataKey="calls" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <div className="rounded-lg border p-5" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold" style={{ color: branding.colors.text }}>Program Demand</h2>
+              <p className="text-xs" style={{ color: branding.colors.textSecondary }}>Which programs are generating trials</p>
+            </div>
+            <Users size={18} style={{ color: branding.colors.accent }} />
+          </div>
+          <div className="h-64">
+            {analytics.programData.length ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={analytics.programData} layout="vertical" margin={{ top: 8, right: 16, bottom: 0, left: 70 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} width={96} />
+                  <Tooltip />
+                  <Bar dataKey="value" name="Trials" radius={[0, 6, 6, 0]}>
+                    {analytics.programData.map((_, index) => <Cell key={index} fill={PROGRAM_COLORS[index % PROGRAM_COLORS.length]} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : <EmptyChart />}
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Sentiment Over Time</h2>
-          <div className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={sentimentWeekly} barSize={12}>
-                <XAxis dataKey="week" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="positive" stackId="a" fill="#22c55e" name="Positive" />
-                <Bar dataKey="neutral" stackId="a" fill="#fbbf24" name="Neutral" />
-                <Bar dataKey="negative" stackId="a" fill="#ef4444" name="Negative" radius={[2, 2, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+        <div className="rounded-lg border p-5" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold" style={{ color: branding.colors.text }}>Best Days for Trial Interest</h2>
+              <p className="text-xs" style={{ color: branding.colors.textSecondary }}>Use this to spot staffing and ad timing patterns</p>
+            </div>
+            <Clock size={18} style={{ color: branding.colors.primary }} />
+          </div>
+          <div className="h-64">
+            {analytics.dayData.some(day => day.calls > 0) ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={analytics.dayData} margin={{ top: 8, right: 12, bottom: 0, left: -18 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="day" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="calls" name="Calls" fill={branding.colors.primary} radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="trials" name="Trials" fill={branding.colors.accent} radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : <EmptyChart />}
           </div>
         </div>
       </div>
 
-      {/* Heatmap — simplified as a table */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <h2 className="text-base font-semibold text-gray-900 mb-4">Calls by Time of Day</h2>
-        <div className="overflow-x-auto">
-          <table className="text-xs w-full">
-            <thead>
-              <tr>
-                <th className="p-1 text-gray-500 text-left w-12">Hour</th>
-                {DAYS.map(d => (
-                  <th key={d} className="p-1 text-gray-500 text-center">{d}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {Array.from({ length: 14 }, (_, i) => i + 7).map(hour => (
-                <tr key={hour}>
-                  <td className="p-1 text-gray-500">
-                    {hour > 12 ? `${hour - 12}pm` : hour === 12 ? '12pm' : `${hour}am`}
-                  </td>
-                  {Array.from({ length: 7 }, (_, dayIdx) => {
-                    const count = heatCounts[`${dayIdx}-${hour}`] || 0
-                    const intensity = count === 0 ? 'bg-gray-50'
-                      : count <= 2 ? 'bg-blue-100'
-                      : count <= 5 ? 'bg-blue-300'
-                      : 'bg-blue-500 text-white'
-                    return (
-                      <td key={dayIdx} className={`p-1 text-center rounded ${intensity}`}>
-                        {count || ''}
-                      </td>
-                    )
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="grid gap-4 xl:grid-cols-3">
+        <div className="rounded-lg border p-5 xl:col-span-2" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
+          <h2 className="text-base font-bold" style={{ color: branding.colors.text }}>Calls by Time of Day</h2>
+          <p className="mb-4 text-xs" style={{ color: branding.colors.textSecondary }}>When prospects and members tend to reach out</p>
+          <div className="grid gap-3 sm:grid-cols-4">
+            {analytics.hourBuckets.map(bucket => (
+              <div key={bucket.label} className="rounded-lg border p-4" style={{ borderColor: branding.colors.border, backgroundColor: branding.colors.surface }}>
+                <p className="text-sm font-bold" style={{ color: branding.colors.text }}>{bucket.label}</p>
+                <p className="mt-2 text-2xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{bucket.calls}</p>
+                <p className="text-xs" style={{ color: branding.colors.textSecondary }}>{bucket.trials} trials booked</p>
+              </div>
+            ))}
+          </div>
         </div>
+
+        <div className="rounded-lg border p-5" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
+          <h2 className="text-base font-bold" style={{ color: branding.colors.text }}>Service Mix</h2>
+          <div className="mt-4 space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-2" style={{ color: branding.colors.textSecondary }}><MessageSquare size={15} /> Messages</span>
+              <strong style={{ color: branding.colors.text }}>{analytics.messages}</strong>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-2" style={{ color: branding.colors.textSecondary }}><Phone size={15} /> Questions</span>
+              <strong style={{ color: branding.colors.text }}>{analytics.questions}</strong>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-2" style={{ color: branding.colors.textSecondary }}><AlertCircle size={15} /> Cancellations</span>
+              <strong style={{ color: branding.colors.text }}>{analytics.cancellations}</strong>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-2" style={{ color: branding.colors.textSecondary }}><CheckCircle2 size={15} /> Handled Rate</span>
+              <strong style={{ color: branding.colors.text }}>{formatPercent(analytics.handledRate)}</strong>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-2" style={{ color: branding.colors.textSecondary }}><Clock size={15} /> Avg Call Length</span>
+              <strong style={{ color: branding.colors.text }}>{formatMinutes(analytics.avgDuration)}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-lg border p-5" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
+        <h2 className="text-base font-bold" style={{ color: branding.colors.text }}>Newest Open Calls</h2>
+        <p className="mb-4 text-xs" style={{ color: branding.colors.textSecondary }}>The calls most likely to need a human decision</p>
+        {analytics.recentOpen.length ? (
+          <div className="divide-y" style={{ borderColor: branding.colors.border }}>
+            {analytics.recentOpen.map(call => (
+              <div key={call.id} className="flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-bold" style={{ color: branding.colors.text }}>{isBlankValue(call.caller_name) ? 'Unknown Caller' : call.caller_name}</p>
+                  <p className="text-xs" style={{ color: branding.colors.textSecondary }}>
+                    {call.caller_phone || 'No phone'} · {call._category} · {call.call_date ? format(parseISO(call.call_date), 'MMM d') : 'No date'}
+                  </p>
+                </div>
+                <p className="max-w-xl text-sm sm:text-right" style={{ color: branding.colors.textSecondary }}>
+                  {call.follow_up_reason || call.summary || 'Review transcript'}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="py-6 text-center text-sm text-slate-400">No open calls in this period.</p>
+        )}
       </div>
     </div>
   )
