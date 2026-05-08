@@ -248,6 +248,7 @@ export default function Dashboard() {
   const categoryCounts = useMemo(() => {
     const counts = { all: 0, followup: 0, trial: 0, message: 0, question: 0, misc: 0, cancellation: 0, spam: 0 }
     enrichedCalls.forEach(c => {
+      if (c.handled) return
       counts[c._category] = (counts[c._category] || 0) + 1
       if (needsStaffFollowUp(c)) counts.followup += 1
       counts.all += 1
