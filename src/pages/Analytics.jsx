@@ -87,6 +87,20 @@ function isPauseOrHold(call) {
   return /\b(pause|paused|hold|freeze|frozen|suspend|suspended)\b/.test(text)
 }
 
+function getCallHour(call) {
+  if (call.call_time) {
+    const hour = Number.parseInt(String(call.call_time).split(':')[0], 10)
+    if (Number.isFinite(hour)) return hour
+  }
+
+  if (call.created_at) {
+    const createdAt = new Date(call.created_at)
+    if (!Number.isNaN(createdAt.getTime())) return createdAt.getHours()
+  }
+
+  return null
+}
+
 function formatPercent(value) {
   if (!Number.isFinite(value)) return '0%'
   return `${Math.round(value)}%`
@@ -253,8 +267,8 @@ export default function Analytics() {
       { label: 'Evening', range: '6 PM - 11 PM', start: 18, end: 23, calls: 0, trials: 0 },
     ]
     current.forEach(call => {
-      if (!call.call_time) return
-      const hour = Number.parseInt(call.call_time.split(':')[0], 10)
+      const hour = getCallHour(call)
+      if (hour === null) return
       const bucket = hourBuckets.find(item => hour >= item.start && hour < item.end)
       if (!bucket) return
       bucket.calls += 1
