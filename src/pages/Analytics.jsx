@@ -258,9 +258,9 @@ export default function Analytics() {
         tone: trials.length ? 'teal' : 'amber',
       },
       {
-        title: 'Owner Watchlist',
+        title: 'Cancellation Calls',
         body: cancellations.length
-          ? `${cancellations.length} cancellation-related calls came in. Review transcripts for save opportunities or service issues.`
+          ? `${cancellations.length} calls mentioned cancelling. Review them to see if staff should follow up.`
           : 'No cancellation calls in this period.',
         tone: cancellations.length ? 'amber' : 'slate',
       },
