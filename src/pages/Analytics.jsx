@@ -140,7 +140,7 @@ export default function Analytics() {
   const { clientData, isAdmin } = useAuth()
   const [calls, setCalls] = useState([])
   const [loading, setLoading] = useState(true)
-  const [rangeDays, setRangeDays] = useState(30)
+  const [rangeDays, setRangeDays] = useState(7)
 
   const clientId = clientData?.id
 
@@ -247,10 +247,10 @@ export default function Analytics() {
     }))
 
     const hourBuckets = [
-      { label: 'Morning', start: 5, end: 11, calls: 0, trials: 0 },
-      { label: 'Midday', start: 11, end: 15, calls: 0, trials: 0 },
-      { label: 'Afternoon', start: 15, end: 18, calls: 0, trials: 0 },
-      { label: 'Evening', start: 18, end: 23, calls: 0, trials: 0 },
+      { label: 'Morning', range: '5 AM - 11 AM', start: 5, end: 11, calls: 0, trials: 0 },
+      { label: 'Midday', range: '11 AM - 3 PM', start: 11, end: 15, calls: 0, trials: 0 },
+      { label: 'Afternoon', range: '3 PM - 6 PM', start: 15, end: 18, calls: 0, trials: 0 },
+      { label: 'Evening', range: '6 PM - 11 PM', start: 18, end: 23, calls: 0, trials: 0 },
     ]
     current.forEach(call => {
       if (!call.call_time) return
@@ -500,6 +500,7 @@ export default function Analytics() {
             {analytics.hourBuckets.map(bucket => (
               <div key={bucket.label} className="rounded-lg border p-4" style={{ borderColor: branding.colors.border, backgroundColor: branding.colors.surface }}>
                 <p className="text-sm font-bold" style={{ color: branding.colors.text }}>{bucket.label}</p>
+                <p className="mt-0.5 text-xs" style={{ color: branding.colors.textSecondary }}>{bucket.range}</p>
                 <p className="mt-2 text-2xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{bucket.calls}</p>
                 <p className="text-xs" style={{ color: branding.colors.textSecondary }}>{bucket.trials} trials booked</p>
               </div>
