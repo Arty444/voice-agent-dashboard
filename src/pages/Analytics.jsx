@@ -31,6 +31,22 @@ function isBlankValue(value) {
   return ['', 'n/a', 'na', 'none', 'null'].includes(String(value).trim().toLowerCase())
 }
 
+function normalizeProgramName(value) {
+  if (isBlankValue(value)) return 'Unknown Program'
+
+  const raw = String(value).trim()
+  const normalized = raw.toLowerCase()
+
+  if (normalized.includes(';') || normalized.includes(',')) return 'Multiple Programs'
+  if (normalized.includes('adult')) return 'Adult Jiu Jitsu'
+  if (normalized.includes('tiny shark')) return 'Tiny Sharks'
+  if (normalized.includes('little shark')) return 'Little Sharks'
+  if (normalized.includes('junior shark') || normalized.includes('jr shark')) return 'Junior Sharks'
+  if (normalized === 'multiple') return 'Multiple Programs'
+
+  return raw
+}
+
 function getCategory(call) {
   if (call.deleted_at) return 'deleted'
   if (call.is_spam) return 'spam'
@@ -196,7 +212,7 @@ export default function Analytics() {
 
     const programCounts = {}
     trials.forEach(call => {
-      const program = isBlankValue(call.program) ? 'Unknown Program' : call.program
+      const program = normalizeProgramName(call.program)
       programCounts[program] = (programCounts[program] || 0) + 1
     })
     const programData = Object.entries(programCounts)
