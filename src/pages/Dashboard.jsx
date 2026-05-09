@@ -7,7 +7,7 @@ import {
   Phone, CalendarCheck, MessageSquare, AlertCircle,
   Pin, PinOff, CheckCircle2, Circle, Search, ChevronRight
 } from 'lucide-react'
-import { formatDistanceToNow, parseISO, subDays, format } from 'date-fns'
+import { format, isToday, isYesterday, parseISO, subDays } from 'date-fns'
 
 const TABS = [
   { key: 'all', label: 'All Calls' },
@@ -135,11 +135,9 @@ function timeAgo(dateStr, timeStr) {
   if (!dateStr) return ''
   try {
     const dt = timeStr ? parseISO(dateStr + 'T' + timeStr) : parseISO(dateStr)
-    const now = new Date()
-    const diff = now - dt
-    const hours = diff / (1000 * 60 * 60)
-    if (hours < 24) return 'Today'
-    return formatDistanceToNow(dt, { addSuffix: true })
+    if (isToday(dt)) return 'Today'
+    if (isYesterday(dt)) return 'Yesterday'
+    return format(dt, 'MMM d')
   } catch {
     return dateStr
   }
