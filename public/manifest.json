@@ -1,0 +1,19 @@
+{
+  "name": "McHugh Jiu Jitsu Command Center",
+  "short_name": "McHugh Command",
+  "description": "Staff dashboard for McHugh Jiu Jitsu voice agent calls.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f6f8fb",
+  "theme_color": "#17172c",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/mchugh-logo-white.png",
+      "sizes": "500x500",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

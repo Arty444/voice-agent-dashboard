@@ -337,7 +337,7 @@ export default function Dashboard() {
         <div className="flex rounded-lg overflow-hidden border" style={{ borderColor: branding.colors.border }}>
           <button
             onClick={() => setDayRange(3)}
-            className="px-3 py-1.5 text-sm font-medium transition-colors"
+            className="min-h-11 px-4 py-2 text-sm font-medium transition-colors"
             style={{
               backgroundColor: dayRange === 3 ? branding.colors.primary : branding.colors.card,
               color: dayRange === 3 ? '#ffffff' : branding.colors.textSecondary,
@@ -347,7 +347,7 @@ export default function Dashboard() {
           </button>
           <button
             onClick={() => setDayRange(7)}
-            className="px-3 py-1.5 text-sm font-medium transition-colors"
+            className="min-h-11 px-4 py-2 text-sm font-medium transition-colors"
             style={{
               backgroundColor: dayRange === 7 ? branding.colors.primary : branding.colors.card,
               color: dayRange === 7 ? '#ffffff' : branding.colors.textSecondary,
@@ -416,7 +416,7 @@ export default function Dashboard() {
       {/* Activity feed */}
       <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
         {/* Tabs */}
-        <div className="flex border-b overflow-x-auto" style={{ borderColor: branding.colors.border }}>
+        <div className="flex overflow-x-auto border-b" style={{ borderColor: branding.colors.border, WebkitOverflowScrolling: 'touch' }}>
           {TABS.map(tab => {
             const isActive = activeTab === tab.key
             const count = categoryCounts[tab.key] || 0
@@ -424,7 +424,7 @@ export default function Dashboard() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className="flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors"
+                className="flex min-h-12 items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors"
                 style={{
                   borderColor: isActive ? branding.colors.primary : 'transparent',
                   color: isActive ? branding.colors.primary : branding.colors.textSecondary,
@@ -461,7 +461,7 @@ export default function Dashboard() {
               placeholder="Search by name, phone, or program..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm rounded-lg focus:outline-none focus:ring-2"
+              className="min-h-11 w-full rounded-lg py-2 pl-9 pr-4 text-sm focus:outline-none focus:ring-2"
               style={{
                 backgroundColor: branding.colors.surface,
                 border: `1px solid ${branding.colors.border}`,
@@ -493,7 +493,7 @@ export default function Dashboard() {
               return (
                 <div
                   key={call.id}
-                  className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-slate-50 ${
+                  className={`flex min-h-[76px] cursor-pointer items-start gap-3 px-4 py-4 transition-colors hover:bg-slate-50 ${
                     isHandled ? 'opacity-50' : ''
                   }`}
                   style={{ backgroundColor: isUnread ? 'rgba(24, 103, 192, 0.03)' : 'transparent' }}
@@ -502,7 +502,7 @@ export default function Dashboard() {
                   {/* Handled checkbox */}
                   <button
                     onClick={e => { e.stopPropagation(); toggleHandled(call.id, call.handled) }}
-                    className="mt-0.5 flex-shrink-0 transition-colors"
+                    className="-ml-2 -mt-1 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg transition-colors"
                     style={{ color: isHandled ? branding.colors.accent : '#cbd5e1' }}
                     title={isHandled ? 'Mark as unhandled' : 'Mark as handled'}
                   >
@@ -557,7 +557,7 @@ export default function Dashboard() {
                   <div className="flex items-center gap-1 flex-shrink-0 mt-1">
                     <button
                       onClick={e => { e.stopPropagation(); togglePin(call.id, call.pinned) }}
-                      className="p-1.5 rounded-lg transition-colors"
+                      className="flex h-11 w-11 items-center justify-center rounded-lg transition-colors"
                       style={{ color: isPinned ? '#f59e0b' : '#cbd5e1' }}
                       title={isPinned ? 'Unpin' : 'Pin to top'}
                     >
@@ -580,7 +580,7 @@ export default function Dashboard() {
               <button
                 onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
                 disabled={currentPage === 1}
-                className="rounded-md border px-3 py-1.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+                className="min-h-11 rounded-md border px-4 py-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40"
                 style={{ borderColor: branding.colors.border, color: branding.colors.textSecondary }}
               >
                 Previous
@@ -592,7 +592,7 @@ export default function Dashboard() {
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className="flex h-8 min-w-8 items-center justify-center rounded-md border px-2 text-xs font-semibold"
+                    className="flex h-11 min-w-11 items-center justify-center rounded-md border px-2 text-xs font-semibold"
                     style={{
                       backgroundColor: isActive ? branding.colors.primary : branding.colors.card,
                       borderColor: isActive ? branding.colors.primary : branding.colors.border,
@@ -606,7 +606,7 @@ export default function Dashboard() {
               <button
                 onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
                 disabled={currentPage === totalPages}
-                className="rounded-md border px-3 py-1.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+                className="min-h-11 rounded-md border px-4 py-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40"
                 style={{ borderColor: branding.colors.border, color: branding.colors.textSecondary }}
               >
                 Next

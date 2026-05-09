@@ -46,7 +46,7 @@ export default function Layout() {
       <aside
         className={`
           fixed inset-y-0 left-0 z-30 w-72
-          transform transition-transform lg:translate-x-0 lg:static lg:z-auto
+          transform transition-transform lg:translate-x-0 lg:static lg:z-auto safe-top
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
         style={{ backgroundColor: branding.colors.sidebar }}
@@ -82,7 +82,7 @@ export default function Layout() {
                 key={to}
                 to={to}
                 onClick={() => setSidebarOpen(false)}
-                className="flex items-center gap-4 px-4 py-3 rounded-lg text-[15px] font-medium transition-colors"
+                className="flex min-h-12 items-center gap-4 rounded-lg px-4 py-3 text-[15px] font-medium transition-colors"
                 style={({ isActive }) => ({
                   backgroundColor: isActive ? 'rgba(24, 103, 192, 0.15)' : 'transparent',
                   color: isActive ? '#60a5fa' : branding.colors.sidebarText,
@@ -97,7 +97,7 @@ export default function Layout() {
               <NavLink
                 to="/admin"
                 onClick={() => setSidebarOpen(false)}
-                className="flex items-center gap-4 px-4 py-3 rounded-lg text-[15px] font-medium transition-colors"
+                className="flex min-h-12 items-center gap-4 rounded-lg px-4 py-3 text-[15px] font-medium transition-colors"
                 style={({ isActive }) => ({
                   backgroundColor: isActive ? 'rgba(168, 85, 247, 0.15)' : 'transparent',
                   color: isActive ? '#c084fc' : 'rgba(168, 85, 247, 0.7)',
@@ -113,7 +113,7 @@ export default function Layout() {
           <div className="p-4 border-t border-white/10">
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-4 px-4 py-3 rounded-lg text-[15px] font-medium w-full transition-colors hover:bg-white/5"
+              className="flex min-h-12 w-full items-center gap-4 rounded-lg px-4 py-3 text-[15px] font-medium transition-colors hover:bg-white/5"
               style={{ color: branding.colors.sidebarText }}
             >
               <LogOut size={20} />
@@ -127,10 +127,10 @@ export default function Layout() {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar (mobile) */}
         <header
-          className="lg:hidden flex items-center justify-between p-4 border-b"
+          className="safe-top flex items-center justify-between border-b p-4 lg:hidden"
           style={{ backgroundColor: branding.colors.sidebar, borderColor: 'rgba(255,255,255,0.1)' }}
         >
-          <button onClick={() => setSidebarOpen(true)} className="text-white">
+          <button onClick={() => setSidebarOpen(true)} className="flex h-11 w-11 items-center justify-center rounded-lg text-white hover:bg-white/10">
             <Menu size={24} />
           </button>
           <img src={branding.logo} alt={branding.name} className="w-8 h-8 object-contain" />
@@ -138,9 +138,29 @@ export default function Layout() {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-4 lg:p-8 overflow-auto">
+        <main className="flex-1 overflow-auto p-4 pb-24 lg:p-8">
           <Outlet />
         </main>
+
+        <nav
+          className="safe-bottom fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t px-2 py-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] lg:hidden"
+          style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}
+        >
+          {navItems.map(({ to, label, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[11px] font-semibold transition-colors"
+              style={({ isActive }) => ({
+                backgroundColor: isActive ? 'rgba(24, 103, 192, 0.1)' : 'transparent',
+                color: isActive ? branding.colors.primary : branding.colors.textSecondary,
+              })}
+            >
+              <Icon size={20} />
+              <span className="max-w-full truncate">{label}</span>
+            </NavLink>
+          ))}
+        </nav>
       </div>
     </div>
   )

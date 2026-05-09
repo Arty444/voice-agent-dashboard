@@ -28,11 +28,11 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="relative w-full max-w-lg bg-white shadow-xl overflow-y-auto">
+      <div className="safe-bottom relative h-full w-full max-w-xl overflow-y-auto bg-white shadow-xl" style={{ WebkitOverflowScrolling: 'touch' }}>
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+        <div className="safe-top sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
           <h2 className="text-lg font-semibold text-gray-900">Call Details</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-50 hover:text-gray-600">
             <X size={20} />
           </button>
         </div>
@@ -52,7 +52,7 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
             {call.deleted_at && onUndelete ? (
               <button
                 onClick={() => onUndelete(call.id)}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
+                className="flex min-h-11 items-center gap-2 rounded-lg bg-slate-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800"
               >
                 <RotateCcw size={16} />
                 Undelete
@@ -60,7 +60,7 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
             ) : onDelete && (
               <button
                 onClick={() => onDelete(call.id)}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+                className="flex min-h-11 items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
               >
                 <Trash2 size={16} />
                 Delete
@@ -70,11 +70,11 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
 
           {/* Quick actions */}
           {(onToggleHandled || onTogglePin) && (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {onToggleHandled && (
                 <button
                   onClick={() => onToggleHandled(call.id, call.handled)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                  className={`flex min-h-11 items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
                     call.handled
                       ? 'bg-green-50 border-green-200 text-green-700'
                       : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
@@ -87,7 +87,7 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
               {onTogglePin && (
                 <button
                   onClick={() => onTogglePin(call.id, call.pinned)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                  className={`flex min-h-11 items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
                     call.pinned
                       ? 'bg-amber-50 border-amber-200 text-amber-700'
                       : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
@@ -155,7 +155,7 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
           {call.transcript && (
             <div>
               <h3 className="text-sm font-semibold text-gray-900 mb-2">Transcript</h3>
-              <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
+              <div className="max-h-[45vh] overflow-y-auto rounded-lg bg-gray-50 p-4" style={{ WebkitOverflowScrolling: 'touch' }}>
                 <pre className="text-sm text-gray-600 whitespace-pre-wrap font-sans leading-relaxed">
                   {call.transcript}
                 </pre>
