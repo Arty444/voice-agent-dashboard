@@ -275,11 +275,6 @@ export default function Analytics() {
       if (isTrial(call)) bucket.trials += 1
     })
 
-    const recentOpen = current
-      .filter(call => !call.handled && !call.deleted_at)
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-      .slice(0, 6)
-
     const staleFollowUps = openFollowUps.filter(call => {
       if (!call._date) return false
       return differenceInCalendarDays(today, call._date) >= 2
@@ -328,7 +323,6 @@ export default function Analytics() {
       programData,
       dayData,
       hourBuckets,
-      recentOpen,
       insights,
     }
   }, [calls, rangeDays])
@@ -555,30 +549,6 @@ export default function Analytics() {
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="rounded-lg border p-5" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
-        <h2 className="text-base font-bold" style={{ color: branding.colors.text }}>Newest Open Calls</h2>
-        <p className="mb-4 text-xs" style={{ color: branding.colors.textSecondary }}>The calls most likely to need a human decision</p>
-        {analytics.recentOpen.length ? (
-          <div className="divide-y" style={{ borderColor: branding.colors.border }}>
-            {analytics.recentOpen.map(call => (
-              <div key={call.id} className="flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-bold" style={{ color: branding.colors.text }}>{isBlankValue(call.caller_name) ? 'Unknown Caller' : call.caller_name}</p>
-                  <p className="text-xs" style={{ color: branding.colors.textSecondary }}>
-                    {call.caller_phone || 'No phone'} · {call._category} · {call.call_date ? format(parseISO(call.call_date), 'MMM d') : 'No date'}
-                  </p>
-                </div>
-                <p className="max-w-xl text-sm sm:text-right" style={{ color: branding.colors.textSecondary }}>
-                  {call.follow_up_reason || call.summary || 'Review transcript'}
-                </p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="py-6 text-center text-sm text-slate-400">No open calls in this period.</p>
-        )}
       </div>
     </div>
   )
