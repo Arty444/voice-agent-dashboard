@@ -7,7 +7,7 @@ import {
   ResponsiveContainer, Tooltip, XAxis, YAxis
 } from 'recharts'
 import {
-  AlertCircle, CalendarCheck, CheckCircle2, Clock, MessageSquare,
+  AlertCircle, CalendarCheck, CheckCircle2, CirclePause, Clock, MessageSquare,
   Phone, Target, TrendingUp, Users
 } from 'lucide-react'
 import {
@@ -73,6 +73,18 @@ function isTrial(call) {
 
 function isOpenFollowUp(call) {
   return !call.deleted_at && !call.handled && (call.needs_follow_up || isTrial(call))
+}
+
+function isPauseOrHold(call) {
+  const text = [
+    call.final_outcome,
+    call.call_type,
+    call.follow_up_reason,
+    call.summary,
+    call.transcript,
+  ].filter(Boolean).join(' ').toLowerCase()
+
+  return /\b(pause|paused|hold|freeze|frozen|suspend|suspended)\b/.test(text)
 }
 
 function formatPercent(value) {
@@ -172,6 +184,7 @@ export default function Analytics() {
     const messages = current.filter(call => call._category === 'message')
     const questions = current.filter(call => call._category === 'question')
     const cancellations = current.filter(call => call._category === 'cancellation')
+    const pausesOrHolds = current.filter(isPauseOrHold)
     const handled = current.filter(call => call.handled)
     const avgDuration = current.length
       ? current.reduce((sum, call) => sum + (call.duration_seconds || 0), 0) / current.length
@@ -293,6 +306,7 @@ export default function Analytics() {
       messages: messages.length,
       questions: questions.length,
       cancellations: cancellations.length,
+      pausesOrHolds: pausesOrHolds.length,
       handledRate,
       avgDuration,
       dailyData: Array.from(dailyMap.values()),
@@ -497,6 +511,10 @@ export default function Analytics() {
           <h2 className="text-base font-bold" style={{ color: branding.colors.text }}>Service Mix</h2>
           <div className="mt-4 space-y-3">
             <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-2" style={{ color: branding.colors.textSecondary }}><CalendarCheck size={15} /> Trials Booked</span>
+              <strong style={{ color: branding.colors.text }}>{analytics.trials}</strong>
+            </div>
+            <div className="flex items-center justify-between text-sm">
               <span className="flex items-center gap-2" style={{ color: branding.colors.textSecondary }}><MessageSquare size={15} /> Messages</span>
               <strong style={{ color: branding.colors.text }}>{analytics.messages}</strong>
             </div>
@@ -507,6 +525,10 @@ export default function Analytics() {
             <div className="flex items-center justify-between text-sm">
               <span className="flex items-center gap-2" style={{ color: branding.colors.textSecondary }}><AlertCircle size={15} /> Cancellations</span>
               <strong style={{ color: branding.colors.text }}>{analytics.cancellations}</strong>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-2" style={{ color: branding.colors.textSecondary }}><CirclePause size={15} /> Pauses/Holds</span>
+              <strong style={{ color: branding.colors.text }}>{analytics.pausesOrHolds}</strong>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="flex items-center gap-2" style={{ color: branding.colors.textSecondary }}><CheckCircle2 size={15} /> Handled Rate</span>
