@@ -25,46 +25,43 @@ textarea {
 }
 
 .login-page {
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
   width: 100vw;
   background-color: #0f1420;
-  background-image:
-    linear-gradient(rgba(15, 20, 30, 0.18), rgba(15, 20, 30, 0.72)),
-    url("/beacon-login.png");
-  background-position: center;
+  background-image: url("/beacon-login.png");
+  background-position: center top;
   background-repeat: no-repeat;
   background-size: cover;
   box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: auto;
-  padding: max(24px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom));
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
 }
 
 .login-form {
-  width: min(100%, 430px);
-  min-height: 0;
-  background: rgba(15, 20, 30, 0.96);
+  position: absolute;
+  left: max(18px, env(safe-area-inset-left));
+  right: max(18px, env(safe-area-inset-right));
+  top: 62.2%;
+  bottom: max(3%, env(safe-area-inset-bottom));
+  width: auto;
+  background: #0f1420;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
+  border-radius: 16px;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 28px;
-  position: relative;
+  min-height: 300px;
+  padding: clamp(18px, 5vw, 28px);
   z-index: 2;
 }
 
 .login-mobile-heading {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 28px;
+  display: none;
 }
 
 .login-mobile-heading img {
@@ -103,32 +100,29 @@ textarea {
 }
 
 @media (max-width: 480px) {
-  .login-page {
-    align-items: flex-start;
-    padding-top: max(28px, env(safe-area-inset-top));
-  }
-
   .login-form {
-    border-radius: 16px;
+    left: 3.7%;
+    right: 4%;
+    top: 62.5%;
+    bottom: calc(3% + env(safe-area-inset-bottom));
+    min-height: 280px;
     padding: 22px;
   }
+}
 
-  .login-mobile-heading {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 24px;
-  }
-
-  .login-mobile-heading img {
-    width: 58px;
-    height: 58px;
+@media (min-width: 700px) and (max-width: 1023px) {
+  .login-form {
+    left: 4.2%;
+    right: 4.2%;
+    top: 62%;
+    bottom: 3%;
+    min-height: 320px;
+    padding: 34px 44px;
   }
 }
 
 @media (min-width: 1024px) {
   .login-page {
-    background-image: url("/beacon-login.png");
     background-size: 100% 100%;
     display: block;
     height: 100vh;

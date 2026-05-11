@@ -26,14 +26,6 @@ export default function Login() {
   return (
     <div className="login-page">
       <form onSubmit={handleSubmit} className="login-form">
-        <div className="login-mobile-heading">
-          <img src="/mchugh-logo-white.png" alt="McHugh Jiu Jitsu" />
-          <div>
-            <h1>McHugh Jiu Jitsu</h1>
-            <p>Command Center</p>
-          </div>
-        </div>
-
         {error && (
           <div style={{
             background: 'rgba(220, 38, 38, 0.2)',
