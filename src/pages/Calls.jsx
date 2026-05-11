@@ -1,12 +1,85 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import Badge from '../components/Badge'
 import CallDetailPanel from '../components/CallDetailPanel'
-import { Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const PAGE_SIZE = 20
+
+const TYPE_FILTERS = [
+  { value: 'all', label: 'All Calls' },
+  { value: 'followup', label: 'Needs Follow-Up' },
+  { value: 'trial', label: 'Trial Classes' },
+  { value: 'message', label: 'Messages' },
+  { value: 'question', label: 'Questions' },
+  { value: 'cancellation', label: 'Cancellations' },
+  { value: 'pause_hold', label: 'Pauses/Holds' },
+  { value: 'misc', label: 'Other Activity' },
+  { value: 'spam', label: 'Spam' },
+  { value: 'deleted', label: 'Deleted Calls' },
+]
+
+const BADGE_LABELS = {
+  trial: 'Booked',
+  followup: 'Follow Up',
+  message: 'Message',
+  question: 'Question',
+  cancellation: 'Cancellation',
+  pause_hold: 'Pause/Hold',
+  misc: 'Other',
+  spam: 'Spam',
+  deleted: 'Deleted',
+}
+
+function isBlankValue(value) {
+  if (value === null || value === undefined) return true
+  return ['', 'n/a', 'na', 'none', 'null'].includes(String(value).trim().toLowerCase())
+}
+
+function normalizeChoice(value) {
+  return String(value || '').trim().toLowerCase().replace(/[\s-]+/g, '_')
+}
+
+function isPauseOrHold(call) {
+  const text = [
+    call.final_outcome,
+    call.call_type,
+    call.follow_up_reason,
+    call.summary,
+    call.transcript,
+  ].filter(Boolean).join(' ').toLowerCase()
+
+  return /\b(pause|paused|hold|freeze|frozen|suspend|suspended)\b/.test(text)
+}
+
+function categorizeCall(call) {
+  if (call.deleted_at) return 'deleted'
+  if (call.is_spam) return 'spam'
+  if (isPauseOrHold(call)) return 'pause_hold'
+
+  const outcome = normalizeChoice(call.final_outcome)
+  if (outcome === 'spam') return 'spam'
+  if (outcome === 'message') return 'message'
+  if (outcome === 'info_only') return 'question'
+  if (outcome === 'cancelled' || outcome === 'canceled') return 'cancellation'
+  if (outcome === 'booked' || outcome === 'book' || outcome === 'rescheduled') return 'trial'
+  if (outcome === 'abandoned') return 'misc'
+
+  const callType = String(call.call_type || '').toLowerCase()
+  const hasTrialDay = !isBlankValue(call.trial_day)
+  if (callType.includes('cancel')) return 'cancellation'
+  if (call.is_lead || hasTrialDay) return 'trial'
+  if (callType.includes('question') || callType.includes('inquiry')) return 'question'
+  if (callType.includes('message') || callType.includes('voicemail')) return 'message'
+  return 'misc'
+}
+
+function isOpenFollowUp(call) {
+  const category = categorizeCall(call)
+  return !call.deleted_at && !call.handled && (call.needs_follow_up || category === 'trial')
+}
 
 export default function Calls() {
   const { clientData, isAdmin } = useAuth()
@@ -14,7 +87,6 @@ export default function Calls() {
   const [calls, setCalls] = useState([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(0)
-  const [total, setTotal] = useState(0)
   const [selectedCall, setSelectedCall] = useState(null)
 
   // Filters
@@ -29,7 +101,7 @@ export default function Calls() {
 
   useEffect(() => {
     fetchCalls()
-  }, [clientId, isAdmin, page, dateFrom, dateTo, typeFilter, programFilter, sentimentFilter])
+  }, [clientId, isAdmin, dateFrom, dateTo, programFilter, sentimentFilter])
 
   // If navigated from dashboard with a specific call
   useEffect(() => {
@@ -40,11 +112,12 @@ export default function Calls() {
   }, [location.state, calls])
 
   async function fetchCalls() {
+    setLoading(true)
     let query = supabase
       .from('calls')
-      .select('*', { count: 'exact' })
+      .select('*')
       .order('created_at', { ascending: false })
-      .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
+      .limit(1000)
 
     if (clientId && !isAdmin) {
       query = query.eq('client_id', clientId)
@@ -53,56 +126,46 @@ export default function Calls() {
     if (dateFrom) query = query.gte('call_date', dateFrom)
     if (dateTo) query = query.lte('call_date', dateTo)
 
-    if (typeFilter === 'leads') query = query.eq('is_lead', true)
-    else if (typeFilter === 'spam') query = query.eq('is_spam', true)
-    else if (typeFilter === 'inquiries') query = query.eq('is_lead', false).eq('is_spam', false)
-
     if (programFilter) query = query.ilike('program', `%${programFilter}%`)
     if (sentimentFilter) query = query.eq('sentiment', sentimentFilter)
 
-    const { data, count } = await query
+    const { data } = await query
     setCalls(data || [])
-    setTotal(count || 0)
     setLoading(false)
   }
 
   function getOutcomeBadge(call) {
-    if (call.is_spam) return 'Spam'
-    if (call.final_outcome) return call.final_outcome.replace('_', ' ')
-    if (call.is_lead) return 'Booked'
-    return 'Inquiry'
+    const category = categorizeCall(call)
+    return BADGE_LABELS[category] || 'Other'
   }
 
-  function getSentimentDot(sentiment) {
-    if (!sentiment) return 'bg-gray-300'
-    const s = sentiment.toLowerCase()
-    if (s === 'positive') return 'bg-green-400'
-    if (s === 'negative') return 'bg-red-400'
-    return 'bg-yellow-400'
-  }
+  const filteredCalls = useMemo(() => {
+    const normalizedSearch = searchQuery.trim().toLowerCase()
+    return calls.filter(call => {
+      const category = categorizeCall(call)
+      const matchesDeletedState = typeFilter === 'deleted' ? category === 'deleted' : category !== 'deleted'
+      const matchesType =
+        typeFilter === 'all'
+          ? matchesDeletedState
+          : typeFilter === 'followup'
+            ? isOpenFollowUp(call)
+            : category === typeFilter
+      const matchesSearch = !normalizedSearch ||
+        (call.caller_name || '').toLowerCase().includes(normalizedSearch) ||
+        (call.caller_phone || '').includes(normalizedSearch)
 
-  function formatDuration(seconds) {
-    if (!seconds) return '—'
-    const m = Math.floor(seconds / 60)
-    const s = seconds % 60
-    return `${m}:${String(s).padStart(2, '0')}`
-  }
+      return matchesType && matchesSearch
+    })
+  }, [calls, searchQuery, typeFilter])
 
-  const totalPages = Math.ceil(total / PAGE_SIZE)
-
-  // Filter displayed calls by search
-  const displayCalls = searchQuery
-    ? calls.filter(c =>
-        (c.caller_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (c.caller_phone || '').includes(searchQuery)
-      )
-    : calls
+  const totalPages = Math.ceil(filteredCalls.length / PAGE_SIZE)
+  const displayCalls = filteredCalls.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: '#1e293b' }}>Call History</h1>
-        <p className="text-sm mt-1" style={{ color: '#64748b' }}>{total} total calls</p>
+        <p className="text-sm mt-1" style={{ color: '#64748b' }}>{filteredCalls.length} matching calls</p>
       </div>
 
       {/* Filters */}
@@ -114,7 +177,7 @@ export default function Calls() {
               type="text"
               placeholder="Search by name or phone..."
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={e => { setSearchQuery(e.target.value); setPage(0) }}
               className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -135,10 +198,9 @@ export default function Calls() {
             onChange={e => { setTypeFilter(e.target.value); setPage(0) }}
             className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           >
-            <option value="all">All Types</option>
-            <option value="leads">Leads</option>
-            <option value="inquiries">Inquiries</option>
-            <option value="spam">Spam</option>
+            {TYPE_FILTERS.map(option => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
           </select>
         </div>
       </div>
@@ -188,7 +250,7 @@ export default function Calls() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
             <p className="text-xs text-gray-500">
-              Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total}
+              Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filteredCalls.length)} of {filteredCalls.length}
             </p>
             <div className="flex gap-1">
               <button
