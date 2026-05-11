@@ -24,32 +24,16 @@ export default function Login() {
   }
 
   return (
-    <div style={{
-      height: '100vh',
-      width: '100vw',
-      backgroundImage: 'url("/beacon-login.png")',
-      backgroundSize: '100% 100%',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      position: 'relative',
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      overflow: 'hidden'
-    }}>
-      <form onSubmit={handleSubmit} style={{
-        position: 'absolute',
-        top: '62.9%',
-        left: '32.2%',
-        width: '35.4%',
-        bottom: '8.1%',
-        background: 'rgba(15, 20, 30, 1)',
-        borderRadius: '14px',
-        padding: '5% 6% 4%',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        zIndex: 2,
-        boxSizing: 'border-box'
-      }}>
+    <div className="login-page">
+      <form onSubmit={handleSubmit} className="login-form">
+        <div className="login-mobile-heading">
+          <img src="/mchugh-logo-white.png" alt="McHugh Jiu Jitsu" />
+          <div>
+            <h1>McHugh Jiu Jitsu</h1>
+            <p>Command Center</p>
+          </div>
+        </div>
+
         {error && (
           <div style={{
             background: 'rgba(220, 38, 38, 0.2)',
