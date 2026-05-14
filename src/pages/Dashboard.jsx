@@ -223,6 +223,18 @@ export default function Dashboard() {
     setActiveTab('all')
   }
 
+  async function saveCallNote(callId, note) {
+    const staffNote = note.trim() || null
+    const { error } = await supabase.from('calls').update({ staff_note: staffNote }).eq('id', callId)
+    if (error) {
+      window.alert('Could not save this note yet. The staff_note column may need to be added in Supabase.')
+      return false
+    }
+    setCalls(prev => prev.map(c => c.id === callId ? { ...c, staff_note: staffNote } : c))
+    setSelectedCall(prev => prev && prev.id === callId ? { ...prev, staff_note: staffNote } : prev)
+    return true
+  }
+
   async function markAsRead(call) {
     if (!call.read_at) {
       await supabase.from('calls').update({ read_at: new Date().toISOString() }).eq('id', call.id)
@@ -629,6 +641,7 @@ export default function Dashboard() {
           }}
           onDelete={deleteCall}
           onUndelete={undeleteCall}
+          onSaveNote={saveCallNote}
         />
       )}
     </div>

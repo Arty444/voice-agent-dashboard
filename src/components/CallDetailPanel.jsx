@@ -1,10 +1,22 @@
-import { X, User, MessageSquare, Pin, PinOff, CheckCircle2, Circle, RotateCcw, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { X, User, MessageSquare, Pin, PinOff, CheckCircle2, Circle, RotateCcw, Trash2, StickyNote, Save } from 'lucide-react'
 import Badge from './Badge'
 
-export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogglePin, onDelete, onUndelete }) {
+export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogglePin, onDelete, onUndelete, onSaveNote }) {
+  const [isEditingNote, setIsEditingNote] = useState(false)
+  const [noteDraft, setNoteDraft] = useState('')
+  const [isSavingNote, setIsSavingNote] = useState(false)
+
+  useEffect(() => {
+    setNoteDraft(call?.staff_note || '')
+    setIsEditingNote(false)
+    setIsSavingNote(false)
+  }, [call?.id, call?.staff_note])
+
   if (!call) return null
 
   const hasTrialDate = call.trial_day && !['n/a', 'na', 'none'].includes(call.trial_day.toLowerCase())
+  const hasStaffNote = Boolean(call.staff_note?.trim())
 
   function formatDuration(seconds) {
     if (!seconds) return '—'
@@ -23,6 +35,14 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
   function cleanSummary(summary) {
     if (!summary) return ''
     return summary.replace(/^call_summary\s*/i, '').trim()
+  }
+
+  async function handleSaveNote() {
+    if (!onSaveNote) return
+    setIsSavingNote(true)
+    const saved = await onSaveNote(call.id, noteDraft)
+    setIsSavingNote(false)
+    if (saved !== false) setIsEditingNote(false)
   }
 
   return (
@@ -69,7 +89,7 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
           </div>
 
           {/* Quick actions */}
-          {(onToggleHandled || onTogglePin) && (
+          {(onToggleHandled || onTogglePin || onSaveNote) && (
             <div className="flex flex-wrap gap-2">
               {onToggleHandled && (
                 <button
@@ -96,6 +116,70 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
                   {call.pinned ? <PinOff size={16} /> : <Pin size={16} />}
                   {call.pinned ? 'Unpin' : 'Pin'}
                 </button>
+              )}
+              {onSaveNote && (
+                <button
+                  onClick={() => setIsEditingNote(true)}
+                  className={`flex min-h-11 items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+                    hasStaffNote
+                      ? 'bg-blue-50 border-blue-200 text-blue-700'
+                      : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <StickyNote size={16} />
+                  {hasStaffNote ? 'Edit Note' : 'Add Note'}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Staff note */}
+          {(hasStaffNote || isEditingNote) && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-amber-700">
+                  <StickyNote size={14} />
+                  Staff Note
+                </h3>
+                {!isEditingNote && (
+                  <button
+                    onClick={() => setIsEditingNote(true)}
+                    className="rounded-md px-2 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-100"
+                  >
+                    Edit
+                  </button>
+                )}
+              </div>
+              {isEditingNote ? (
+                <div className="space-y-3">
+                  <textarea
+                    value={noteDraft}
+                    onChange={e => setNoteDraft(e.target.value)}
+                    placeholder="Write a staff note for this call..."
+                    className="min-h-28 w-full resize-y rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+                  />
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <button
+                      onClick={() => {
+                        setNoteDraft(call.staff_note || '')
+                        setIsEditingNote(false)
+                      }}
+                      className="min-h-10 rounded-lg border border-amber-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-amber-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSaveNote}
+                      disabled={isSavingNote}
+                      className="flex min-h-10 items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <Save size={16} />
+                      {isSavingNote ? 'Saving...' : 'Save Note'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">{call.staff_note}</p>
               )}
             </div>
           )}

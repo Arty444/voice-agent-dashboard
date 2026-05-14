@@ -134,6 +134,18 @@ export default function Calls() {
     setLoading(false)
   }
 
+  async function saveCallNote(callId, note) {
+    const staffNote = note.trim() || null
+    const { error } = await supabase.from('calls').update({ staff_note: staffNote }).eq('id', callId)
+    if (error) {
+      window.alert('Could not save this note yet. The staff_note column may need to be added in Supabase.')
+      return false
+    }
+    setCalls(prev => prev.map(call => call.id === callId ? { ...call, staff_note: staffNote } : call))
+    setSelectedCall(prev => prev && prev.id === callId ? { ...prev, staff_note: staffNote } : prev)
+    return true
+  }
+
   function getOutcomeBadge(call) {
     const category = categorizeCall(call)
     return BADGE_LABELS[category] || 'Other'
@@ -274,7 +286,7 @@ export default function Calls() {
 
       {/* Detail panel */}
       {selectedCall && (
-        <CallDetailPanel call={selectedCall} onClose={() => setSelectedCall(null)} />
+        <CallDetailPanel call={selectedCall} onClose={() => setSelectedCall(null)} onSaveNote={saveCallNote} />
       )}
     </div>
   )
