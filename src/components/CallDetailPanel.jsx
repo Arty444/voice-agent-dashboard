@@ -214,10 +214,6 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
               <div className="mt-1"><Badge text={getOutcomeBadge(call)} /></div>
             </div>
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Sentiment</p>
-              <div className="mt-1"><Badge text={call.sentiment || '—'} /></div>
-            </div>
-            <div>
               <p className="text-xs text-gray-500 uppercase tracking-wide">Type</p>
               <p className="text-sm font-medium text-gray-900 mt-1">{call.call_type || '—'}</p>
             </div>

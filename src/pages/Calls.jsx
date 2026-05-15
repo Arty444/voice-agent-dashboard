@@ -94,14 +94,13 @@ export default function Calls() {
   const [dateTo, setDateTo] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
   const [programFilter, setProgramFilter] = useState('')
-  const [sentimentFilter, setSentimentFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
 
   const clientId = clientData?.id
 
   useEffect(() => {
     fetchCalls()
-  }, [clientId, isAdmin, dateFrom, dateTo, programFilter, sentimentFilter])
+  }, [clientId, isAdmin, dateFrom, dateTo, programFilter])
 
   // If navigated from dashboard with a specific call
   useEffect(() => {
@@ -127,7 +126,6 @@ export default function Calls() {
     if (dateTo) query = query.lte('call_date', dateTo)
 
     if (programFilter) query = query.ilike('program', `%${programFilter}%`)
-    if (sentimentFilter) query = query.eq('sentiment', sentimentFilter)
 
     const { data } = await query
     setCalls(data || [])
