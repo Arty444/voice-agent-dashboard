@@ -338,7 +338,7 @@ export default function Messages() {
                       )}
                       {call.deleted_at && (
                         <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
-                          Hidden from Command Center
+                          Deleted from Command Center
                         </span>
                       )}
                     </div>
