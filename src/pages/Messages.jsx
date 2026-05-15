@@ -78,7 +78,7 @@ export default function Messages() {
     }
 
     const { data } = await query
-    setCalls((data || []).filter(call => !call.deleted_at && isMessageOrNote(call)))
+    setCalls((data || []).filter(isMessageOrNote))
     setLoading(false)
   }
 
@@ -334,6 +334,11 @@ export default function Messages() {
                         <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-700">
                           <StickyNote size={11} />
                           Note
+                        </span>
+                      )}
+                      {call.deleted_at && (
+                        <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                          Hidden from Command Center
                         </span>
                       )}
                     </div>
