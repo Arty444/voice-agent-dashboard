@@ -3,18 +3,19 @@ import { useAuth } from '../context/AuthContext'
 import branding from '../config/clientBranding'
 import {
   LayoutDashboard,
-  Phone,
   ClipboardList,
   BarChart3,
   Settings,
   Shield,
   LogOut,
   Menu,
+  MessageSquareText,
 } from 'lucide-react'
 import { useState } from 'react'
 
 const navItems = [
   { to: '/', label: branding.terminology.dashboard, icon: LayoutDashboard },
+  { to: '/messages', label: 'Messages', icon: MessageSquareText },
   { to: '/calls', label: 'Call History', icon: ClipboardList },
   { to: '/analytics', label: branding.terminology.analytics, icon: BarChart3 },
   { to: '/settings', label: branding.terminology.settings, icon: Settings },
@@ -143,7 +144,7 @@ export default function Layout() {
         </main>
 
         <nav
-          className="safe-bottom fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t px-2 py-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] lg:hidden"
+          className="safe-bottom fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t px-2 py-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] lg:hidden"
           style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}
         >
           {navItems.map(({ to, label, icon: Icon }) => (

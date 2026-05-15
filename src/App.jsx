@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import Layout from './components/Layout'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import Messages from './pages/Messages'
 import Calls from './pages/Calls'
 import Leads from './pages/Leads'
 import Analytics from './pages/Analytics'
@@ -46,6 +47,7 @@ function App() {
             }
           >
             <Route index element={<Dashboard />} />
+            <Route path="messages" element={<Messages />} />
             <Route path="calls" element={<Calls />} />
             <Route path="leads" element={<Leads />} />
             <Route path="analytics" element={<Analytics />} />
