@@ -110,10 +110,9 @@ export default function Calls() {
     }
   }, [location.state, calls])
 
-  async function fetchCalls() {
-    setLoading(true)
+  function buildCallsQuery(table) {
     let query = supabase
-      .from('calls')
+      .from(table)
       .select('*')
       .order('created_at', { ascending: false })
       .limit(1000)
@@ -127,7 +126,17 @@ export default function Calls() {
 
     if (programFilter) query = query.ilike('program', `%${programFilter}%`)
 
-    const { data } = await query
+    return query
+  }
+
+  async function fetchCalls() {
+    setLoading(true)
+    // Prefer the member-match view; if it hasn't been created yet, fall back to
+    // the base calls table so the page works regardless of migration/deploy order.
+    let { data, error } = await buildCallsQuery('calls_with_member')
+    if (error) {
+      ({ data } = await buildCallsQuery('calls'))
+    }
     setCalls(data || [])
     setLoading(false)
   }
@@ -161,7 +170,7 @@ export default function Calls() {
             ? isOpenFollowUp(call)
             : category === typeFilter
       const matchesSearch = !normalizedSearch ||
-        (call.caller_name || '').toLowerCase().includes(normalizedSearch) ||
+        (call.display_name || call.caller_name || '').toLowerCase().includes(normalizedSearch) ||
         (call.caller_phone || '').includes(normalizedSearch)
 
       return matchesType && matchesSearch
@@ -243,7 +252,10 @@ export default function Calls() {
                     className="hover:bg-gray-50 cursor-pointer transition-colors"
                   >
                     <td className="px-4 py-3 font-medium text-gray-900">
-                      {call.caller_name || 'Unknown'}
+                      <div className="flex items-center gap-2">
+                        <span>{call.display_name || call.caller_name || 'Unknown'}</span>
+                        {call.is_member && <Badge text="Member" />}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-gray-500">{call.caller_phone || '—'}</td>
                     <td className="px-4 py-3 text-gray-500">{call.call_date ? new Date(call.call_date + 'T00:00:00').toLocaleDateString('en-US') : '—'}</td>

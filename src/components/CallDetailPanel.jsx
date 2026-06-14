@@ -65,8 +65,17 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
                 <User size={20} className="text-gray-500" />
               </div>
               <div>
-                <p className="font-semibold text-gray-900 text-lg">{call.caller_name || 'Unknown'}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-gray-900 text-lg">{call.display_name || call.caller_name || 'Unknown'}</p>
+                  {call.is_member && <Badge text="Member" />}
+                </div>
                 <p className="text-sm text-gray-500">{call.caller_phone || '—'}</p>
+                {call.is_member && call.member_account_name && call.member_account_name !== call.member_contact_name && (
+                  <p className="text-xs text-indigo-600 mt-0.5">Account: {call.member_account_name}</p>
+                )}
+                {!call.is_member && call.name_source === 'address_book' && (
+                  <p className="text-xs text-gray-400 mt-0.5">Name from a previous call</p>
+                )}
               </div>
             </div>
             {call.deleted_at && onUndelete ? (
