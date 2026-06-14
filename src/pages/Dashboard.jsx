@@ -100,6 +100,8 @@ function getSummaryLine(call) {
 }
 
 function getCallerName(call) {
+  // Prefer the member/address-book resolved name from the calls_with_member view.
+  if (!isBlankValue(call.display_name)) return call.display_name
   return isBlankValue(call.caller_name) ? 'Unknown Caller' : call.caller_name
 }
 
@@ -173,17 +175,21 @@ export default function Dashboard() {
 
   async function fetchCalls() {
     const cutoff = subDays(new Date(), dayRange).toISOString().split('T')[0]
-    let query = supabase
-      .from('calls')
-      .select('*')
-      .gte('call_date', cutoff)
-      .order('created_at', { ascending: false })
-
-    if (clientId && !isAdmin) {
-      query = query.eq('client_id', clientId)
+    const buildQuery = (table) => {
+      let q = supabase
+        .from(table)
+        .select('*')
+        .gte('call_date', cutoff)
+        .order('created_at', { ascending: false })
+      if (clientId && !isAdmin) q = q.eq('client_id', clientId)
+      return q
     }
 
-    const { data } = await query
+    // Prefer the member-match view; fall back to base calls if it's not present.
+    let { data, error } = await buildQuery('calls_with_member')
+    if (error) {
+      ({ data } = await buildQuery('calls'))
+    }
     setCalls(data || [])
     setLoading(false)
   }
@@ -266,7 +272,7 @@ export default function Dashboard() {
     if (!searchQuery.trim()) return filteredByTab
     const q = searchQuery.toLowerCase()
     return filteredByTab.filter(c =>
-      (c.caller_name || '').toLowerCase().includes(q) ||
+      (c.display_name || c.caller_name || '').toLowerCase().includes(q) ||
       (c.caller_phone || '').includes(q) ||
       (c.summary || '').toLowerCase().includes(q) ||
       (c.program || '').toLowerCase().includes(q)
@@ -335,19 +341,30 @@ export default function Dashboard() {
   return (
     <div className="space-y-6" style={{ fontFamily: "'Poppins', sans-serif" }}>
       {/* Header */}
-      <div className="flex items-end justify-between">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text, fontSize: '1.75rem', letterSpacing: '0.01em' }}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <h1
+            className="font-bold leading-tight"
+            style={{
+              fontFamily: "'Khand', sans-serif",
+              color: branding.colors.text,
+              fontSize: 'clamp(1.5rem, 6vw, 1.75rem)',
+              letterSpacing: '0.01em',
+            }}
+          >
             {branding.name} {branding.terminology.dashboard}
           </h1>
           <p className="text-sm mt-0.5" style={{ color: branding.colors.textSecondary }}>
             {branding.terminology.subtitle} — Last {dayRange} days
           </p>
         </div>
-        <div className="flex rounded-lg overflow-hidden border" style={{ borderColor: branding.colors.border }}>
+        <div
+          className="flex shrink-0 self-start overflow-hidden rounded-lg border sm:self-auto"
+          style={{ borderColor: branding.colors.border }}
+        >
           <button
             onClick={() => setDayRange(3)}
-            className="min-h-11 px-4 py-2 text-sm font-medium transition-colors"
+            className="min-h-11 whitespace-nowrap px-5 py-2 text-sm font-medium transition-colors"
             style={{
               backgroundColor: dayRange === 3 ? branding.colors.primary : branding.colors.card,
               color: dayRange === 3 ? '#ffffff' : branding.colors.textSecondary,
@@ -357,7 +374,7 @@ export default function Dashboard() {
           </button>
           <button
             onClick={() => setDayRange(7)}
-            className="min-h-11 px-4 py-2 text-sm font-medium transition-colors"
+            className="min-h-11 whitespace-nowrap px-5 py-2 text-sm font-medium transition-colors"
             style={{
               backgroundColor: dayRange === 7 ? branding.colors.primary : branding.colors.card,
               color: dayRange === 7 ? '#ffffff' : branding.colors.textSecondary,
@@ -529,6 +546,11 @@ export default function Dashboard() {
                       <span className={`text-sm ${isUnread ? 'font-bold' : 'font-semibold'}`} style={{ color: branding.colors.text }}>
                         {callerName}
                       </span>
+                      {call.is_member && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-indigo-100 text-indigo-700 flex-shrink-0">
+                          Member
+                        </span>
+                      )}
                       {programName && (
                         <span className="text-[11px] font-medium px-1.5 py-0.5 rounded" style={{ backgroundColor: '#f1f5f9', color: '#475569' }}>
                           {programName}
