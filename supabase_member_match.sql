@@ -2,10 +2,12 @@
 -- Run this once in the Supabase SQL editor (project mhhcyiehibbtspcpryyb).
 --
 -- Design contract:
---   * A MATCH is the only positive claim. It always reflects a real phone hit
---     against a real enrolled account.
---   * A NON-match is NULL. There is deliberately no "lead"/"prospect" value
---     anywhere here, so nothing can ever infer one from a miss.
+--   * Every tag reflects a real phone hit against a real EFC record, and shows
+--     that record's actual status: Member (Enrolled), Inactive Member
+--     (Inactive), or Lead (Prospective).
+--   * A NON-match is NULL — no tag at all. A status is NEVER inferred from a
+--     miss; "Lead" only ever comes from an actual Prospective record in EFC,
+--     not from the absence of a member match.
 --   * Everything is a live LEFT JOIN, so re-importing members (or new calls
 --     arriving) retroactively re-evaluates the whole call history.
 
@@ -84,7 +86,16 @@ select distinct on (client_id, phone_norm)
   client_id, phone_norm, contact_name, member_name, efc_reference, status
 from public.members
 where phone_norm <> ''
-order by client_id, phone_norm, imported_at desc;
+-- If a number has several records, show the strongest relationship:
+-- current member > former member > lead.
+order by client_id, phone_norm,
+  case lower(status)
+    when 'enrolled'    then 0
+    when 'inactive'    then 1
+    when 'prospective' then 2
+    else 3
+  end,
+  imported_at desc;
 
 -- ── phone_names: the caller "address book" ──────────────────────────────────
 -- The most recent non-blank name any call from a number has ever given. Lets a
@@ -108,7 +119,12 @@ select
   m.contact_name  as member_contact_name,
   m.member_name   as member_account_name,
   m.efc_reference as member_efc_reference,
-  (m.client_id is not null) as is_member,
+  m.status        as member_status,
+  -- One positive tag per call, straight from the matched EFC record's status.
+  -- A non-match leaves all of these false — we never infer a status from a miss.
+  (lower(m.status) = 'enrolled')    as is_member,
+  (lower(m.status) = 'inactive')    as is_former_member,
+  (lower(m.status) = 'prospective') as is_lead,
   pn.known_name   as address_book_name,
   -- single field the UI renders; null -> UI shows "Unknown"
   coalesce(nullif(m.contact_name, ''), public.clean_name(c.caller_name), pn.known_name) as display_name,

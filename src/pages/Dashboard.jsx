@@ -551,6 +551,16 @@ export default function Dashboard() {
                           Member
                         </span>
                       )}
+                      {call.is_former_member && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-slate-100 text-slate-600 flex-shrink-0">
+                          Inactive Member
+                        </span>
+                      )}
+                      {call.is_lead && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-amber-100 text-amber-700 flex-shrink-0">
+                          Lead
+                        </span>
+                      )}
                       {programName && (
                         <span className="text-[11px] font-medium px-1.5 py-0.5 rounded" style={{ backgroundColor: '#f1f5f9', color: '#475569' }}>
                           {programName}

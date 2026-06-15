@@ -255,6 +255,8 @@ export default function Calls() {
                       <div className="flex items-center gap-2">
                         <span>{call.display_name || call.caller_name || 'Unknown'}</span>
                         {call.is_member && <Badge text="Member" />}
+                        {call.is_former_member && <Badge text="Inactive Member" />}
+                        {call.is_lead && <Badge text="Lead" />}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-gray-500">{call.caller_phone || '—'}</td>
