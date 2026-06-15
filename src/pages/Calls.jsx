@@ -256,7 +256,7 @@ export default function Calls() {
                         <span>{call.display_name || call.caller_name || 'Unknown'}</span>
                         {call.is_member && <Badge text="Member" />}
                         {call.is_former_member && <Badge text="Inactive Member" />}
-                        {call.is_lead && <Badge text="Lead" />}
+                        {call.is_prospect && <Badge text="Lead" />}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-gray-500">{call.caller_phone || '—'}</td>

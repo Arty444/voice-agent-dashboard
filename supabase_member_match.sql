@@ -127,7 +127,8 @@ select
   -- A non-match leaves all of these false — we never infer a status from a miss.
   (lower(m.status) = 'enrolled')    as is_member,
   (lower(m.status) = 'inactive')    as is_former_member,
-  (lower(m.status) = 'prospective') as is_lead,
+  -- named is_prospect, NOT is_lead: calls.is_lead already exists (trial flag)
+  (lower(m.status) = 'prospective') as is_prospect,
   pn.known_name   as address_book_name,
   -- single field the UI renders; null -> UI shows "Unknown"
   coalesce(nullif(m.contact_name, ''), public.clean_name(c.caller_name), pn.known_name) as display_name,

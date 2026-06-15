@@ -69,13 +69,13 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
                   <p className="font-semibold text-gray-900 text-lg">{call.display_name || call.caller_name || 'Unknown'}</p>
                   {call.is_member && <Badge text="Member" />}
                   {call.is_former_member && <Badge text="Inactive Member" />}
-                  {call.is_lead && <Badge text="Lead" />}
+                  {call.is_prospect && <Badge text="Lead" />}
                 </div>
                 <p className="text-sm text-gray-500">{call.caller_phone || '—'}</p>
-                {(call.is_member || call.is_former_member || call.is_lead) && call.member_account_name && call.member_account_name !== call.member_contact_name && (
+                {(call.is_member || call.is_former_member || call.is_prospect) && call.member_account_name && call.member_account_name !== call.member_contact_name && (
                   <p className="text-xs text-indigo-600 mt-0.5">Account: {call.member_account_name}</p>
                 )}
-                {!call.is_member && !call.is_former_member && !call.is_lead && call.name_source === 'address_book' && (
+                {!call.is_member && !call.is_former_member && !call.is_prospect && call.name_source === 'address_book' && (
                   <p className="text-xs text-gray-400 mt-0.5">Name from a previous call</p>
                 )}
               </div>
