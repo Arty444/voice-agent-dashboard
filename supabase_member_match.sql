@@ -112,7 +112,10 @@ where public.clean_name(caller_name) is not null
 order by client_id, public.norm_phone(caller_phone), call_date desc, created_at desc;
 
 -- ── calls_with_member: what the dashboard reads instead of `calls` ──────────
-create or replace view public.calls_with_member
+-- Dropped + recreated (not CREATE OR REPLACE) because the column set changes
+-- as we add/reorder fields. Nothing depends on this view, so the drop is safe.
+drop view if exists public.calls_with_member;
+create view public.calls_with_member
 with (security_invoker = true) as
 select
   c.*,
