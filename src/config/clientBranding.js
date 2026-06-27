@@ -1,7 +1,10 @@
-// Client branding configuration
-// Swap this file to rebrand the dashboard for a different client
+// Client branding — resolved PER LOGGED-IN CLIENT (by Supabase clients.id).
+// The dashboard is multi-tenant: McHugh and Team Bundy share one deployment,
+// so branding must be selected at runtime from the logged-in client.
+// Add a new entry per client. Use getBranding(clientData) (or the useBranding
+// hook) to read the right one. Default falls back to McHugh.
 
-const clientBranding = {
+const mchugh = {
   // Identity
   name: 'McHugh Jiu Jitsu',
   shortName: 'McHugh',
@@ -62,4 +65,72 @@ const clientBranding = {
   },
 }
 
-export default clientBranding
+const teamBundy = {
+  // Identity
+  name: 'Team Bundy Jiu-Jitsu',
+  shortName: 'Team Bundy',
+  logo: '/team-bundy-logo-white.png',
+  poweredBy: 'Beacon',
+
+  terminology: {
+    dashboard: 'Command Center',
+    subtitle: 'Today at Team Bundy',
+    inbox: 'Front Desk',
+    calls: 'Calls',
+    analytics: 'Analytics',
+    settings: 'Settings',
+    totalCalls: 'Inquiries Captured',
+    trialsBooked: 'Trials Scheduled',
+  },
+
+  tabs: {
+    all: 'All Activity',
+    trial: 'Trial Classes',
+    message: 'Messages',
+    question: 'Questions',
+    misc: 'Other Activity',
+    cancellation: 'Cancellations',
+    spam: 'Spam',
+  },
+
+  statuses: {
+    confirmed: 'Confirmed',
+    newInquiry: 'New Inquiry',
+  },
+
+  programs: [
+    'Kids Jiu-Jitsu',
+    'Teen Jiu-Jitsu',
+    'Fighting Fundamentals',
+  ],
+
+  // Color palette — sourced from teambundymma.com (navy + white)
+  colors: {
+    primary: '#13518C',       // Team Bundy navy-blue — active states, tabs, links
+    primaryDark: '#0B355C',   // Deeper navy
+    accent: '#2E8B9E',        // Muted teal — success, confirmed states
+    alert: '#D5242C',         // Crimson — attention, urgent items
+    sidebar: '#0B2A47',       // Deep navy — sidebar background
+    sidebarText: '#dbe4ee',   // Light blue-gray — sidebar text
+    sidebarActive: '#13518C', // Navy — active nav item
+    surface: '#F5F6F8',       // Light gray — page background
+    card: '#FFFFFF',          // White — card backgrounds
+    text: '#1e293b',          // Near-black — primary text
+    textSecondary: '#64748b', // Slate — secondary text
+    border: '#e2e8f0',        // Light border
+  },
+}
+
+// Keyed by Supabase clients.id
+export const BRANDINGS = {
+  '6d047c8a-bedf-4feb-9223-803c57a8ce1a': mchugh,    // McHugh Jiu Jitsu HQ
+  'd094ef3f-0b1d-4054-b47e-16596855a51b': teamBundy, // Team Bundy Jiu-Jitsu
+}
+
+// Resolve branding for the logged-in client; default to McHugh for
+// unknown/admin sessions so existing behavior is preserved.
+export function getBranding(clientData) {
+  return (clientData && BRANDINGS[clientData.id]) || mchugh
+}
+
+export default mchugh

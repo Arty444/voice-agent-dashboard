@@ -4,7 +4,7 @@ import { CheckCircle2, Circle, MessageSquarePlus, Pin, PinOff, Search, StickyNot
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import CallDetailPanel from '../components/CallDetailPanel'
-import branding from '../config/clientBranding'
+import { useBranding } from '../hooks/useBranding'
 
 const FALLBACK_CLIENT_ID = '6d047c8a-bedf-4feb-9223-803c57a8ce1a'
 
@@ -46,6 +46,7 @@ function getWhenLabel(call) {
 
 export default function Messages() {
   const { clientData, isAdmin } = useAuth()
+  const branding = useBranding()
   const [calls, setCalls] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)

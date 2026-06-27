@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
-import branding from '../config/clientBranding'
+import { useBranding } from '../hooks/useBranding'
 import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis
@@ -121,6 +121,7 @@ function metricDelta(current, previous) {
 }
 
 function StatCard({ icon: Icon, label, value, detail, tone = 'blue' }) {
+  const branding = useBranding()
   const tones = {
     blue: ['rgba(24, 103, 192, 0.08)', branding.colors.primary],
     teal: ['rgba(72, 169, 166, 0.1)', branding.colors.accent],
@@ -152,6 +153,7 @@ function EmptyChart() {
 
 export default function Analytics() {
   const { clientData, isAdmin } = useAuth()
+  const branding = useBranding()
   const [calls, setCalls] = useState([])
   const [loading, setLoading] = useState(true)
   const [rangeDays, setRangeDays] = useState(7)

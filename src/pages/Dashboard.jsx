@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import CallDetailPanel from '../components/CallDetailPanel'
-import branding from '../config/clientBranding'
+import { useBranding } from '../hooks/useBranding'
 import {
   Phone, CalendarCheck, MessageSquare, AlertCircle,
   Pin, PinOff, CheckCircle2, Circle, Search, ChevronRight
@@ -12,11 +12,11 @@ import { format, isToday, isYesterday, parseISO, subDays } from 'date-fns'
 const TABS = [
   { key: 'all', label: 'All Calls' },
   { key: 'followup', label: 'Needs Follow-Up' },
-  { key: 'trial', label: branding.tabs.trial },
-  { key: 'message', label: branding.tabs.message },
-  { key: 'question', label: branding.tabs.question },
-  { key: 'cancellation', label: branding.tabs.cancellation },
-  { key: 'misc', label: branding.tabs.misc },
+  { key: 'trial', label: 'Trial Classes' },
+  { key: 'message', label: 'Messages' },
+  { key: 'question', label: 'Questions' },
+  { key: 'cancellation', label: 'Cancellations' },
+  { key: 'misc', label: 'Other Activity' },
   { key: 'spam', label: 'Spam' },
   { key: 'deleted', label: 'Deleted Calls' },
 ]
@@ -154,6 +154,7 @@ function formatDuration(seconds) {
 
 export default function Dashboard() {
   const { clientData, isAdmin } = useAuth()
+  const branding = useBranding()
   const [calls, setCalls] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('all')

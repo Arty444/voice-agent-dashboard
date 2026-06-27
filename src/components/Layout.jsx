@@ -1,6 +1,6 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import branding from '../config/clientBranding'
+import { useBranding } from '../hooks/useBranding'
 import {
   LayoutDashboard,
   ClipboardList,
@@ -14,15 +14,16 @@ import {
 import { useState } from 'react'
 
 const navItems = [
-  { to: '/', label: branding.terminology.dashboard, icon: LayoutDashboard },
+  { to: '/', label: 'Command Center', icon: LayoutDashboard },
   { to: '/messages', label: 'Messages', icon: MessageSquareText },
   { to: '/calls', label: 'Call History', icon: ClipboardList },
-  { to: '/analytics', label: branding.terminology.analytics, icon: BarChart3 },
-  { to: '/settings', label: branding.terminology.settings, icon: Settings },
+  { to: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { to: '/settings', label: 'Settings', icon: Settings },
 ]
 
 export default function Layout() {
   const { user, clientData, isAdmin, signOut } = useAuth()
+  const branding = useBranding()
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
