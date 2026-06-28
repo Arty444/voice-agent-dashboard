@@ -1,22 +1,87 @@
 import { useEffect, useState } from 'react'
-import { X, User, MessageSquare, Pin, PinOff, CheckCircle2, Circle, RotateCcw, Trash2, StickyNote, Save } from 'lucide-react'
+import { X, User, MessageSquare, Pin, PinOff, CheckCircle2, Circle, RotateCcw, Trash2, StickyNote, Save, Ban, Loader2, AlertTriangle } from 'lucide-react'
 import Badge from './Badge'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../context/AuthContext'
+
+// The cancel-membership bot is McHugh-only (their EFC location). The dashboard is
+// multi-tenant, so gate the button to McHugh's data — other gyms never see it.
+const MCHUGH_CLIENT_ID = '6d047c8a-bedf-4feb-9223-803c57a8ce1a'
+
+// A call is a cancellation request if its outcome/type says so.
+function isCancellationCall(call) {
+  const outcome = String(call?.final_outcome || '').trim().toLowerCase()
+  if (outcome === 'cancelled' || outcome === 'canceled') return true
+  return String(call?.call_type || '').toLowerCase().includes('cancel')
+}
 
 export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogglePin, onDelete, onUndelete, onSaveNote }) {
+  const { user } = useAuth()
   const [isEditingNote, setIsEditingNote] = useState(false)
   const [noteDraft, setNoteDraft] = useState('')
   const [isSavingNote, setIsSavingNote] = useState(false)
+
+  // Cancel-membership controls
+  const [showCancelMenu, setShowCancelMenu] = useState(false)
+  const [pendingMode, setPendingMode] = useState(null) // '30day' | 'immediate' awaiting confirm
+  const [cancelJob, setCancelJob] = useState(null)      // latest job for this call
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     setNoteDraft(call?.staff_note || '')
     setIsEditingNote(false)
     setIsSavingNote(false)
+    setShowCancelMenu(false)
+    setPendingMode(null)
   }, [call?.id, call?.staff_note])
+
+  // Track this call's cancellation job (initial fetch + live updates).
+  useEffect(() => {
+    if (!call?.id) return
+    let alive = true
+    async function fetchJob() {
+      const { data } = await supabase
+        .from('cancellation_jobs')
+        .select('*')
+        .eq('call_id', call.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+      if (alive) setCancelJob((data && data[0]) || null)
+    }
+    fetchJob()
+    const ch = supabase
+      .channel(`cxl_job_${call.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cancellation_jobs', filter: `call_id=eq.${call.id}` }, fetchJob)
+      .subscribe()
+    return () => { alive = false; supabase.removeChannel(ch) }
+  }, [call?.id])
+
+  async function submitCancellation(mode) {
+    setSubmitting(true)
+    const { data, error } = await supabase.from('cancellation_jobs').insert({
+      client_id: call.client_id,
+      call_id: call.id,
+      efc_reference: call.member_efc_reference,
+      member_name: call.member_account_name || call.display_name || call.caller_name,
+      caller_phone: call.caller_phone || null,
+      requested_by: user?.email || null,
+      cancel_mode: mode,            // '30day' | 'immediate'
+      dry_run: false,
+      status: 'queued',
+    }).select()
+    setSubmitting(false)
+    setPendingMode(null)
+    setShowCancelMenu(false)
+    if (error) { window.alert(`Could not queue cancellation: ${error.message}`); return }
+    setCancelJob(data[0])
+  }
 
   if (!call) return null
 
   const hasTrialDate = call.trial_day && !['n/a', 'na', 'none'].includes(call.trial_day.toLowerCase())
   const hasStaffNote = Boolean(call.staff_note?.trim())
+  const canShowCancel = isCancellationCall(call) && call.client_id === MCHUGH_CLIENT_ID
+  const hasEfcRef = Boolean(call.member_efc_reference && String(call.member_efc_reference).trim())
 
   function formatDuration(seconds) {
     if (!seconds) return '—'
@@ -100,7 +165,7 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
           </div>
 
           {/* Quick actions */}
-          {(onToggleHandled || onTogglePin || onSaveNote) && (
+          {(onToggleHandled || onTogglePin || onSaveNote || canShowCancel) && (
             <div className="flex flex-wrap gap-2">
               {onToggleHandled && (
                 <button
@@ -140,6 +205,82 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
                   <StickyNote size={16} />
                   {hasStaffNote ? 'Edit Note' : 'Add Note'}
                 </button>
+              )}
+              {/* Cancel membership — only for cancellation-request calls */}
+              {canShowCancel && (
+                <button
+                  onClick={() => { setShowCancelMenu(v => !v); setPendingMode(null) }}
+                  className={`flex min-h-11 items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+                    showCancelMenu
+                      ? 'bg-red-50 border-red-200 text-red-700'
+                      : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <Ban size={16} />
+                  Cancel
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Cancel-membership dropdown / confirm / status */}
+          {canShowCancel && (showCancelMenu || cancelJob) && (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-4 space-y-3">
+              {/* The two options (only while the menu is open and nothing pending/queued) */}
+              {showCancelMenu && !pendingMode && (
+                !hasEfcRef ? (
+                  <p className="flex items-center gap-2 text-sm text-amber-700">
+                    <AlertTriangle size={15} /> This caller isn’t matched to an EFC member, so it can’t be auto-cancelled. Match them in EFC first.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-red-700">Cancel {call.member_account_name || call.display_name || 'this member'}’s membership</p>
+                    {/* 30 day FIRST, then Immediately */}
+                    <button
+                      onClick={() => setPendingMode('30day')}
+                      className="flex w-full items-center justify-between rounded-lg border border-red-200 bg-white px-4 py-3 text-left text-sm font-medium text-gray-800 hover:bg-red-100/40"
+                    >
+                      <span>30 day notice</span>
+                      <span className="text-xs text-gray-500">bills next 2 payments, then cancels</span>
+                    </button>
+                    <button
+                      onClick={() => setPendingMode('immediate')}
+                      className="flex w-full items-center justify-between rounded-lg border border-red-200 bg-white px-4 py-3 text-left text-sm font-medium text-gray-800 hover:bg-red-100/40"
+                    >
+                      <span>Immediately</span>
+                      <span className="text-xs text-gray-500">cancels right away</span>
+                    </button>
+                  </div>
+                )
+              )}
+
+              {/* Confirm step */}
+              {pendingMode && (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-800">
+                    {pendingMode === '30day'
+                      ? <>Cancel <b>{call.member_account_name || call.display_name}</b>’s membership on <b>30-day notice</b> (bill the next 2 payments, then cancel)?</>
+                      : <>Cancel <b>{call.member_account_name || call.display_name}</b>’s membership <b>immediately</b>?</>}
+                  </p>
+                  <p className="text-xs text-red-600">This is a real cancellation in EFC.</p>
+                  <div className="flex justify-end gap-2">
+                    <button onClick={() => setPendingMode(null)} disabled={submitting} className="min-h-10 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">Back</button>
+                    <button onClick={() => submitCancellation(pendingMode)} disabled={submitting} className="min-h-10 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50">
+                      {submitting ? 'Submitting…' : pendingMode === '30day' ? 'Confirm 30-day cancel' : 'Confirm immediate cancel'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Status of the queued/processed job */}
+              {cancelJob && !pendingMode && (
+                <div className="flex items-start gap-2 text-sm">
+                  {cancelJob.status === 'queued' && <><Loader2 size={15} className="mt-0.5 animate-spin text-amber-600" /><span className="text-amber-700">Cancellation queued ({cancelJob.cancel_mode === '30day' ? '30-day' : 'immediate'}) — waiting for the bot.</span></>}
+                  {cancelJob.status === 'running' && <><Loader2 size={15} className="mt-0.5 animate-spin text-blue-600" /><span className="text-blue-700">Bot is processing the cancellation…</span></>}
+                  {cancelJob.status === 'done' && <><CheckCircle2 size={15} className="mt-0.5 text-green-600" /><span className="text-green-700">{cancelJob.result_note || 'Cancelled.'}{cancelJob.screenshot_url && <> · <a className="underline" href={cancelJob.screenshot_url} target="_blank" rel="noreferrer">proof</a></>}</span></>}
+                  {cancelJob.status === 'failed' && <><AlertTriangle size={15} className="mt-0.5 text-red-600" /><span className="text-red-700">Cancellation failed: {cancelJob.error || 'unknown error'}</span></>}
+                  {cancelJob.status === 'skipped' && <><AlertTriangle size={15} className="mt-0.5 text-amber-600" /><span className="text-amber-700">{cancelJob.error || 'Skipped — needs manual handling.'}</span></>}
+                </div>
               )}
             </div>
           )}
