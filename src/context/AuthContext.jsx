@@ -9,8 +9,6 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
 
-  const ADMIN_EMAIL = 'johnartmcevoy@gmail.com'
-
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       handleSession(session)
@@ -26,7 +24,9 @@ export function AuthProvider({ children }) {
   async function handleSession(session) {
     const currentUser = session?.user ?? null
     setUser(currentUser)
-    setIsAdmin(currentUser?.email === ADMIN_EMAIL)
+    // Admin is a server-set JWT claim (auth.users app_metadata, see
+    // migrations/001_admin_role.sql) — the same claim the RLS policies check.
+    setIsAdmin(currentUser?.app_metadata?.role === 'admin')
 
     if (currentUser) {
       // Fetch client data for this user

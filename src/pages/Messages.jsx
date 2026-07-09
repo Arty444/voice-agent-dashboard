@@ -6,8 +6,6 @@ import { useAuth } from '../context/AuthContext'
 import CallDetailPanel from '../components/CallDetailPanel'
 import { useBranding } from '../hooks/useBranding'
 
-const FALLBACK_CLIENT_ID = '6d047c8a-bedf-4feb-9223-803c57a8ce1a'
-
 function hasText(value) {
   return Boolean(String(value || '').trim())
 }
@@ -60,7 +58,9 @@ export default function Messages() {
   })
 
   const clientId = clientData?.id
-  const writableClientId = clientId || FALLBACK_CLIENT_ID
+  // Manual messages are written under the logged-in gym's own client row —
+  // never a fallback tenant. Until clientData resolves the form stays disabled.
+  const writableClientId = clientId || null
 
   useEffect(() => {
     fetchMessages()
@@ -91,6 +91,11 @@ export default function Messages() {
 
     if (!callerPhone || !message) {
       window.alert('Please add the caller phone number and message.')
+      return
+    }
+
+    if (!writableClientId) {
+      window.alert('Your account is not linked to a client yet, so messages cannot be saved.')
       return
     }
 
@@ -254,7 +259,7 @@ export default function Messages() {
         <div className="mt-4 flex justify-end">
           <button
             type="submit"
-            disabled={saving}
+            disabled={saving || !writableClientId}
             className="min-h-11 rounded-lg px-5 py-2 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
             style={{ backgroundColor: branding.colors.primary }}
           >

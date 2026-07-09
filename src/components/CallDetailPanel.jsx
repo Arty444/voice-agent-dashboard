@@ -3,10 +3,7 @@ import { X, User, MessageSquare, Pin, PinOff, CheckCircle2, Circle, RotateCcw, T
 import Badge from './Badge'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
-
-// The cancel-membership bot is McHugh-only (their EFC location). The dashboard is
-// multi-tenant, so gate the button to McHugh's data — other gyms never see it.
-const MCHUGH_CLIENT_ID = '6d047c8a-bedf-4feb-9223-803c57a8ce1a'
+import { useClientFlags } from '../hooks/useClientFlags'
 
 // A call is a cancellation request if its outcome/type says so.
 function isCancellationCall(call) {
@@ -17,6 +14,8 @@ function isCancellationCall(call) {
 
 export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogglePin, onDelete, onUndelete, onSaveNote }) {
   const { user } = useAuth()
+  // The cancel-membership bot only runs for EFC-enabled clients (clients.efc_enabled).
+  const { efcEnabled } = useClientFlags(call?.client_id)
   const [isEditingNote, setIsEditingNote] = useState(false)
   const [noteDraft, setNoteDraft] = useState('')
   const [isSavingNote, setIsSavingNote] = useState(false)
@@ -80,7 +79,7 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
 
   const hasTrialDate = call.trial_day && !['n/a', 'na', 'none'].includes(call.trial_day.toLowerCase())
   const hasStaffNote = Boolean(call.staff_note?.trim())
-  const canShowCancel = isCancellationCall(call) && call.client_id === MCHUGH_CLIENT_ID
+  const canShowCancel = isCancellationCall(call) && efcEnabled
   const hasEfcRef = Boolean(call.member_efc_reference && String(call.member_efc_reference).trim())
 
   function formatDuration(seconds) {
