@@ -1,7 +1,7 @@
 {
-  "name": "McHugh Jiu Jitsu Command Center",
-  "short_name": "McHugh Command",
-  "description": "Staff dashboard for McHugh Jiu Jitsu voice agent calls.",
+  "name": "Beacon AI",
+  "short_name": "Beacon AI",
+  "description": "Beacon AI — AI voice agent for martial arts academies.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -10,8 +10,8 @@
   "orientation": "any",
   "icons": [
     {
-      "src": "/mchugh-logo-white.png",
-      "sizes": "500x500",
+      "src": "/beacon-icon.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }

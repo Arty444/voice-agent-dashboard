@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext({})
@@ -8,6 +8,9 @@ export function AuthProvider({ children }) {
   const [clientData, setClientData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
+  // Tracks which email's client branding is currently loaded, so token-refresh
+  // events (same user) don't re-fetch or flip loading.
+  const loadedEmailRef = useRef(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -29,15 +32,23 @@ export function AuthProvider({ children }) {
     setIsAdmin(currentUser?.app_metadata?.role === 'admin')
 
     if (currentUser) {
-      // Fetch client data for this user
-      const { data } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('email', currentUser.email)
-        .single()
-      setClientData(data)
+      // Only (re)load client branding when the signed-in identity changes.
+      // On the first load for a user we hold `loading` true through the fetch so
+      // the app never renders the dashboard with default/other-tenant branding
+      // before this client's branding resolves (prevents a branding flash on login).
+      if (loadedEmailRef.current !== currentUser.email) {
+        setLoading(true)
+        const { data } = await supabase
+          .from('clients')
+          .select('*')
+          .eq('email', currentUser.email)
+          .single()
+        setClientData(data)
+        loadedEmailRef.current = currentUser.email
+      }
     } else {
       setClientData(null)
+      loadedEmailRef.current = null
     }
 
     setLoading(false)
