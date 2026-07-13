@@ -121,10 +121,73 @@ const teamBundy = {
   },
 }
 
+const roneyEdler = {
+  // Identity
+  name: 'Roney Edler Brazilian Jiu-Jitsu',
+  shortName: 'Roney Edler BJJ',
+  logo: '/roney-edler-logo-white.png',
+  poweredBy: 'Beacon',
+
+  terminology: {
+    dashboard: 'Command Center',
+    subtitle: 'Today at Roney Edler BJJ',
+    inbox: 'Front Desk',
+    calls: 'Calls',
+    analytics: 'Analytics',
+    settings: 'Settings',
+    totalCalls: 'Inquiries Captured',
+    trialsBooked: 'Trials Scheduled',
+  },
+
+  tabs: {
+    all: 'All Activity',
+    trial: 'Trial Classes',
+    message: 'Messages',
+    question: 'Questions',
+    misc: 'Other Activity',
+    cancellation: 'Cancellations',
+    spam: 'Spam',
+  },
+
+  statuses: {
+    confirmed: 'Confirmed',
+    newInquiry: 'New Inquiry',
+  },
+
+  programs: [
+    'Little Samurais',
+    'Warriors',
+    'Fundamentals',
+    'Advanced',
+    'No-Gi',
+    'Competition',
+  ],
+
+  // Color palette — Sertão crest is a bold black-and-white desert stamp.
+  // Near-black sidebar carries the white crest; desert-amber primary +
+  // cactus-green accent evoke the Sertão theme and stay distinct from the
+  // other tenants (McHugh blue / Bundy navy).
+  colors: {
+    primary: '#B26A1F',       // Desert amber/bronze — active states, tabs, links
+    primaryDark: '#8A4F17',   // Deeper bronze
+    accent: '#3F7D5A',        // Cactus green — success, confirmed states
+    alert: '#D5242C',         // Crimson — attention, urgent items
+    sidebar: '#141414',       // Near-black — sidebar background (matches the stamp crest)
+    sidebarText: '#e5e5e5',   // Light gray — sidebar text
+    sidebarActive: '#B26A1F', // Amber — active nav item
+    surface: '#F5F5F4',       // Warm light gray — page background
+    card: '#FFFFFF',          // White — card backgrounds
+    text: '#1e293b',          // Near-black — primary text
+    textSecondary: '#64748b', // Slate — secondary text
+    border: '#e7e5e4',        // Light warm border
+  },
+}
+
 // Keyed by Supabase clients.id
 export const BRANDINGS = {
   '6d047c8a-bedf-4feb-9223-803c57a8ce1a': mchugh,    // McHugh Jiu Jitsu HQ
   'd094ef3f-0b1d-4054-b47e-16596855a51b': teamBundy, // Team Bundy Jiu-Jitsu
+  '5503c49f-bd9c-438a-a4cd-4e2d583b0319': roneyEdler, // Roney Edler Brazilian Jiu-Jitsu
 }
 
 // Resolve branding for the logged-in client; default to McHugh for
