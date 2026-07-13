@@ -164,17 +164,17 @@ const roneyEdler = {
   ],
 
   // Color palette — Sertão crest is a bold black-and-white desert stamp.
-  // Near-black sidebar carries the white crest; desert-amber primary +
-  // cactus-green accent evoke the Sertão theme and stay distinct from the
-  // other tenants (McHugh blue / Bundy navy).
+  // Near-black sidebar carries the white crest; a crisp blue primary drives
+  // active states, kept distinct from the other tenants (McHugh #1867C0 /
+  // Bundy #13518C).
   colors: {
-    primary: '#B26A1F',       // Desert amber/bronze — active states, tabs, links
-    primaryDark: '#8A4F17',   // Deeper bronze
+    primary: '#2563EB',       // Blue — active states, tabs, links
+    primaryDark: '#1D4ED8',   // Deeper blue
     accent: '#3F7D5A',        // Cactus green — success, confirmed states
     alert: '#D5242C',         // Crimson — attention, urgent items
     sidebar: '#141414',       // Near-black — sidebar background (matches the stamp crest)
     sidebarText: '#e5e5e5',   // Light gray — sidebar text
-    sidebarActive: '#B26A1F', // Amber — active nav item
+    sidebarActive: '#2563EB', // Blue — active nav item
     surface: '#F5F5F4',       // Warm light gray — page background
     card: '#FFFFFF',          // White — card backgrounds
     text: '#1e293b',          // Near-black — primary text
