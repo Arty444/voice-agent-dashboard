@@ -183,11 +183,75 @@ const roneyEdler = {
   },
 }
 
+const gbArcadia = {
+  // Identity
+  name: 'Gracie Barra Arcadia',
+  shortName: 'GB Arcadia',
+  logo: '/gb-arcadia-logo-white.png',
+  poweredBy: 'Beacon',
+
+  terminology: {
+    dashboard: 'Command Center',
+    subtitle: 'Today at GB Arcadia',
+    inbox: 'Front Desk',
+    calls: 'Calls',
+    analytics: 'Analytics',
+    settings: 'Settings',
+    totalCalls: 'Inquiries Captured',
+    trialsBooked: 'Trials Scheduled',
+  },
+
+  tabs: {
+    all: 'All Activity',
+    trial: 'Trial Classes',
+    message: 'Messages',
+    question: 'Questions',
+    misc: 'Other Activity',
+    cancellation: 'Cancellations',
+    spam: 'Spam',
+  },
+
+  statuses: {
+    confirmed: 'Confirmed',
+    newInquiry: 'New Inquiry',
+  },
+
+  programs: [
+    'Tiny Champions',
+    'Little Champions 1',
+    'Little Champions 2',
+    'Juniors',
+    'Parents & Kids',
+    'GB1 All Levels',
+    'GB2 Advanced',
+    "Women's Program",
+  ],
+
+  // Color palette — Gracie Barra red shield (#E3201B wordmark) on near-black,
+  // kept distinct from the other tenants (McHugh #1867C0 / Bundy #13518C /
+  // Roney #2563EB).
+  colors: {
+    primary: '#CE202F',       // Gracie Barra red — active states, tabs, links
+    primaryDark: '#A31621',   // Deeper red
+    accent: '#2E8B57',        // Mat green — success, confirmed states
+    alert: '#D5242C',         // Crimson — attention, urgent items
+    sidebar: '#161616',       // Near-black — sidebar background (carries the white wordmark)
+    sidebarText: '#e5e5e5',   // Light gray — sidebar text
+    sidebarActive: '#CE202F', // Red — active nav item
+    surface: '#F5F5F4',       // Warm light gray — page background
+    card: '#FFFFFF',          // White — card backgrounds
+    text: '#1e293b',          // Near-black — primary text
+    textSecondary: '#64748b', // Slate — secondary text
+    border: '#e7e5e4',        // Light warm border
+  },
+}
+
 // Keyed by Supabase clients.id
 export const BRANDINGS = {
   '6d047c8a-bedf-4feb-9223-803c57a8ce1a': mchugh,    // McHugh Jiu Jitsu HQ
   'd094ef3f-0b1d-4054-b47e-16596855a51b': teamBundy, // Team Bundy Jiu-Jitsu
   '5503c49f-bd9c-438a-a4cd-4e2d583b0319': roneyEdler, // Roney Edler Brazilian Jiu-Jitsu
+  '2a94f278-af97-4400-9737-3080752c4ae9': gbArcadia,  // Gracie Barra Arcadia
 }
 
 // Resolve branding for the logged-in client; default to McHugh for
