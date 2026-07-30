@@ -227,17 +227,19 @@ const gbArcadia = {
     "Women's Program",
   ],
 
-  // Color palette — Gracie Barra red shield (#E3201B wordmark) on near-black,
-  // kept distinct from the other tenants (McHugh #1867C0 / Bundy #13518C /
-  // Roney #2563EB).
+  // Color palette — blue-primary per John (2026-07-29 swap request): blue
+  // drives active states/tabs/attention, Gracie Barra red (#E3201B wordmark)
+  // is reserved for the sidebar active accent against the near-black.
   colors: {
-    primary: '#CE202F',       // Gracie Barra red — active states, tabs, links
-    primaryDark: '#A31621',   // Deeper red
+    primary: '#1D4ED8',       // Royal blue — active states, tabs, links
+    primaryDark: '#153EA8',   // Deeper blue
     accent: '#2E8B57',        // Mat green — success, confirmed states
-    alert: '#D5242C',         // Crimson — attention, urgent items
+    alert: '#2563EB',         // Bright blue — attention, urgent items
     sidebar: '#161616',       // Near-black — sidebar background (carries the white wordmark)
     sidebarText: '#e5e5e5',   // Light gray — sidebar text
-    sidebarActive: '#CE202F', // Red — active nav item
+    sidebarActive: '#E3201B', // GB red — active nav item
+    sidebarActiveBg: 'rgba(227, 32, 27, 0.18)', // GB red tint — active nav background
+    sidebarActiveText: '#F87171', // Light red — active nav label on dark sidebar
     surface: '#F5F5F4',       // Warm light gray — page background
     card: '#FFFFFF',          // White — card backgrounds
     text: '#1e293b',          // Near-black — primary text

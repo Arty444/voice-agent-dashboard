@@ -86,8 +86,12 @@ export default function Layout() {
                 onClick={() => setSidebarOpen(false)}
                 className="flex min-h-12 items-center gap-4 rounded-lg px-4 py-3 text-[15px] font-medium transition-colors"
                 style={({ isActive }) => ({
-                  backgroundColor: isActive ? 'rgba(24, 103, 192, 0.15)' : 'transparent',
-                  color: isActive ? '#60a5fa' : branding.colors.sidebarText,
+                  backgroundColor: isActive
+                    ? branding.colors.sidebarActiveBg || 'rgba(24, 103, 192, 0.15)'
+                    : 'transparent',
+                  color: isActive
+                    ? branding.colors.sidebarActiveText || '#60a5fa'
+                    : branding.colors.sidebarText,
                 })}
               >
                 <Icon size={20} />
