@@ -185,7 +185,7 @@ const roneyEdler = {
 
 const gbArcadia = {
   // Identity
-  name: 'Gracie Barra Arcadia',
+  name: 'Gracie Barra Phoenix',
   shortName: 'GB Arcadia',
   logo: '/gb-arcadia-logo-white.png',
   poweredBy: 'Beacon',
