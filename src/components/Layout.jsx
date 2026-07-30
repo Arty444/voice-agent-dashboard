@@ -33,6 +33,9 @@ export default function Layout() {
   }
 
   const displayName = clientData?.business_name || user?.email || ''
+  const visibleNavItems = navItems.filter(
+    ({ to }) => !(branding.hiddenNav || []).includes(to)
+  )
 
   return (
     <div className="min-h-screen flex" style={{ backgroundColor: branding.colors.surface, fontFamily: "'Poppins', sans-serif" }}>
@@ -79,7 +82,7 @@ export default function Layout() {
 
           {/* Nav links */}
           <nav className="flex-1 p-4 space-y-1">
-            {navItems.map(({ to, label, icon: Icon }) => (
+            {visibleNavItems.map(({ to, label, icon: Icon }) => (
               <NavLink
                 key={to}
                 to={to}
@@ -150,9 +153,13 @@ export default function Layout() {
 
         <nav
           className="safe-bottom fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t px-2 py-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] lg:hidden"
-          style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}
+          style={{
+            backgroundColor: branding.colors.card,
+            borderColor: branding.colors.border,
+            gridTemplateColumns: `repeat(${visibleNavItems.length}, minmax(0, 1fr))`,
+          }}
         >
-          {navItems.map(({ to, label, icon: Icon }) => (
+          {visibleNavItems.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}

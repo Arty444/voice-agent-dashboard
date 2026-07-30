@@ -190,6 +190,10 @@ const gbArcadia = {
   logo: '/gb-arcadia-logo-white.png',
   poweredBy: 'Beacon',
 
+  // Demo simplification: hide the Messages page from the nav (message-type
+  // calls still appear in the Command Center feed and Call History).
+  hiddenNav: ['/messages'],
+
   terminology: {
     dashboard: 'Command Center',
     subtitle: 'Today at GB Arcadia',
