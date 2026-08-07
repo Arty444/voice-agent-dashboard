@@ -289,19 +289,15 @@ const matakas = {
     newInquiry: 'New Inquiry',
   },
 
-  // Matches the Retell post-call `program` enum (location-tagged — Florence
-  // and Hamilton run different schedules).
+  // Matches the Retell post-call `program` enum. Florence Academy only —
+  // Hamilton callers are handled as take-a-message, never booked.
   programs: [
-    'Tiny Tykes (Florence)',
-    'Youth 1 (Florence)',
-    'Youth 2 (Florence)',
-    'Adult Fundamentals (Florence)',
-    'Adult All Levels (Florence)',
-    'Adult Advanced (Florence)',
-    '3 Year Old Program (Hamilton)',
-    'Tiny Tykes (Hamilton)',
-    'Youth (Hamilton)',
-    'Adult Program (Hamilton)',
+    'Tiny Tykes',
+    'Youth 1',
+    'Youth 2',
+    'Adult Fundamentals',
+    'Adult All Levels',
+    'Adult Advanced',
   ],
 
   // Color palette — Matakas brand is deep forest green on white (schedule
