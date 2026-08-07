@@ -252,12 +252,86 @@ const gbArcadia = {
   },
 }
 
+const matakas = {
+  // Identity
+  name: 'Matakas Jiu Jitsu',
+  shortName: 'Matakas',
+  logo: '/matakas-logo-white.png',
+  poweredBy: 'Beacon',
+
+  // Demo simplification: hide the Messages page from the nav (message-type
+  // calls still appear in the Command Center feed and Call History).
+  hiddenNav: ['/messages'],
+
+  terminology: {
+    dashboard: 'Command Center',
+    subtitle: 'Today at Matakas Jiu Jitsu',
+    inbox: 'Front Desk',
+    calls: 'Calls',
+    analytics: 'Analytics',
+    settings: 'Settings',
+    totalCalls: 'Inquiries Captured',
+    trialsBooked: 'Trials Scheduled',
+  },
+
+  tabs: {
+    all: 'All Activity',
+    trial: 'Trial Classes',
+    message: 'Messages',
+    question: 'Questions',
+    misc: 'Other Activity',
+    cancellation: 'Cancellations',
+    spam: 'Spam',
+  },
+
+  statuses: {
+    confirmed: 'Confirmed',
+    newInquiry: 'New Inquiry',
+  },
+
+  // Matches the Retell post-call `program` enum (location-tagged — Florence
+  // and Hamilton run different schedules).
+  programs: [
+    'Tiny Tykes (Florence)',
+    'Youth 1 (Florence)',
+    'Youth 2 (Florence)',
+    'Adult Fundamentals (Florence)',
+    'Adult All Levels (Florence)',
+    'Adult Advanced (Florence)',
+    '3 Year Old Program (Hamilton)',
+    'Tiny Tykes (Hamilton)',
+    'Youth (Hamilton)',
+    'Adult Program (Hamilton)',
+  ],
+
+  // Color palette — Matakas brand is deep forest green on white (schedule
+  // sheets sample #002d18). Green drives active states; near-black-green
+  // sidebar carries the white wordmark.
+  colors: {
+    primary: '#15803D',       // Forest green — active states, tabs, links
+    primaryDark: '#116232',   // Deeper green
+    accent: '#2E8B57',        // Mat green — success, confirmed states
+    alert: '#D97706',         // Amber — attention, urgent items
+    sidebar: '#0d2116',       // Near-black green — sidebar background (carries the white wordmark)
+    sidebarText: '#e5e5e5',   // Light gray — sidebar text
+    sidebarActive: '#22C55E', // Bright green — active nav item
+    sidebarActiveBg: 'rgba(34, 197, 94, 0.15)', // Green tint — active nav background
+    sidebarActiveText: '#4ADE80', // Light green — active nav label on dark sidebar
+    surface: '#F5F5F4',       // Warm light gray — page background
+    card: '#FFFFFF',          // White — card backgrounds
+    text: '#1e293b',          // Near-black — primary text
+    textSecondary: '#64748b', // Slate — secondary text
+    border: '#e7e5e4',        // Light warm border
+  },
+}
+
 // Keyed by Supabase clients.id
 export const BRANDINGS = {
   '6d047c8a-bedf-4feb-9223-803c57a8ce1a': mchugh,    // McHugh Jiu Jitsu HQ
   'd094ef3f-0b1d-4054-b47e-16596855a51b': teamBundy, // Team Bundy Jiu-Jitsu
   '5503c49f-bd9c-438a-a4cd-4e2d583b0319': roneyEdler, // Roney Edler Brazilian Jiu-Jitsu
   '2a94f278-af97-4400-9737-3080752c4ae9': gbArcadia,  // Gracie Barra Arcadia
+  'b807d455-368f-4c34-b666-6ce98a084722': matakas,    // Matakas Jiu Jitsu
 }
 
 // Resolve branding for the logged-in client; default to McHugh for
