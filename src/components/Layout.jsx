@@ -80,9 +80,9 @@ export default function Layout() {
             <p className="text-[11px] tracking-widest mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
               Powered by {branding.poweredBy}
             </p>
-            {displayName && (
+            {(branding.locationLabel || displayName) && (
               <p className="text-xs mt-3 truncate w-full" style={{ color: branding.colors.sidebarText }}>
-                {displayName}
+                {branding.locationLabel || displayName}
               </p>
             )}
           </div>

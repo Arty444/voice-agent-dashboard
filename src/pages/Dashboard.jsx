@@ -36,6 +36,28 @@ function useCountUp(target, duration = 700) {
   return value
 }
 
+// Tiny 7-day trend line for a stat card; pure SVG, brand-colored.
+function Sparkline({ points, color }) {
+  if (!points || points.length < 2 || points.every(v => v === 0)) return null
+  const w = 64, h = 24, max = Math.max(...points, 1)
+  const step = w / (points.length - 1)
+  const coords = points.map((v, i) => `${(i * step).toFixed(1)},${(h - 2 - (v / max) * (h - 6)).toFixed(1)}`)
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
+      <polyline
+        points={coords.join(' ')}
+        fill="none"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity="0.8"
+      />
+      <circle cx={coords[coords.length - 1].split(',')[0]} cy={coords[coords.length - 1].split(',')[1]} r="2.5" fill={color} />
+    </svg>
+  )
+}
+
 const TABS = [
   { key: 'all', label: 'All Calls' },
   { key: 'followup', label: 'Needs Follow-Up' },
@@ -202,13 +224,15 @@ export default function Dashboard() {
   }, [activeTab, searchQuery, dayRange])
 
   async function fetchCalls() {
-    const cutoff = subDays(new Date(), dayRange).toISOString().split('T')[0]
     const buildQuery = (table) => {
       let q = supabase
         .from(table)
         .select('*')
-        .gte('call_date', cutoff)
         .order('created_at', { ascending: false })
+      if (dayRange !== 'all') {
+        const cutoff = subDays(new Date(), dayRange).toISOString().split('T')[0]
+        q = q.gte('call_date', cutoff)
+      }
       if (clientId && !isAdmin) q = q.eq('client_id', clientId)
       return q
     }
@@ -363,6 +387,43 @@ export default function Dashboard() {
   const followUpsShown = useCountUp(followUps)
   const messagesShown = useCountUp(messages)
 
+  // Daily counts for the last 7 days — the stat-card sparklines.
+  const sparkSeries = useMemo(() => {
+    const days = [...Array(7)].map((_, i) => format(subDays(new Date(), 6 - i), 'yyyy-MM-dd'))
+    const count = pred => days.map(d => activeCalls.filter(c => c.call_date === d && pred(c)).length)
+    return {
+      total: count(() => true),
+      trial: count(c => c._category === 'trial'),
+      followup: count(c => needsStaffFollowUp(c)),
+      message: count(c => c._category === 'message'),
+    }
+  }, [activeCalls])
+
+  // Live feed: refetch (and flash the new row) the moment a call lands.
+  const [flashId, setFlashId] = useState(null)
+  const [liveReady, setLiveReady] = useState(false)
+  useEffect(() => {
+    const opts = { event: 'INSERT', schema: 'public', table: 'calls' }
+    if (clientId && !isAdmin) opts.filter = `client_id=eq.${clientId}`
+    const ch = supabase
+      .channel('calls-live')
+      .on('postgres_changes', opts, payload => {
+        setFlashId(payload.new?.id ?? null)
+        fetchCalls()
+        setTimeout(() => setFlashId(null), 3000)
+      })
+      .subscribe(status => setLiveReady(status === 'SUBSCRIBED'))
+    return () => { supabase.removeChannel(ch) }
+  }, [clientId, isAdmin, dayRange])
+
+  // Sliding underline for the category tabs.
+  const tabRefs = useRef({})
+  const [tabIndicator, setTabIndicator] = useState({ left: 0, width: 0 })
+  useEffect(() => {
+    const el = tabRefs.current[activeTab]
+    if (el) setTabIndicator({ left: el.offsetLeft, width: el.offsetWidth })
+  }, [activeTab, categoryCounts, loading])
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -394,45 +455,48 @@ export default function Dashboard() {
           >
             {branding.name} {branding.terminology.dashboard}
           </h1>
-          <p className="text-sm mt-0.5" style={{ color: branding.colors.textSecondary }}>
-            {branding.terminology.subtitle} — Last {dayRange} days
+          <p className="text-sm mt-0.5 flex items-center gap-2" style={{ color: branding.colors.textSecondary }}>
+            {branding.terminology.subtitle} — {dayRange === 'all' ? 'All time' : `Last ${dayRange} days`}
+            {liveReady && (
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium" style={{ color: branding.colors.accent }}>
+                <span className="live-dot" style={{ backgroundColor: branding.colors.accent }} />
+                Live
+              </span>
+            )}
           </p>
         </div>
         <div
           className="flex shrink-0 self-start overflow-hidden rounded-lg border sm:self-auto"
           style={{ borderColor: branding.colors.border }}
         >
-          <button
-            onClick={() => setDayRange(3)}
-            className="min-h-11 whitespace-nowrap px-5 py-2 text-sm font-medium transition-colors"
-            style={{
-              backgroundColor: dayRange === 3 ? branding.colors.primary : branding.colors.card,
-              color: dayRange === 3 ? '#ffffff' : branding.colors.textSecondary,
-            }}
-          >
-            3 Days
-          </button>
-          <button
-            onClick={() => setDayRange(7)}
-            className="min-h-11 whitespace-nowrap px-5 py-2 text-sm font-medium transition-colors"
-            style={{
-              backgroundColor: dayRange === 7 ? branding.colors.primary : branding.colors.card,
-              color: dayRange === 7 ? '#ffffff' : branding.colors.textSecondary,
-            }}
-          >
-            7 Days
-          </button>
+          {[
+            { value: 3, label: '3 Days' },
+            { value: 7, label: '7 Days' },
+            { value: 'all', label: 'All' },
+          ].map(({ value, label }) => (
+            <button
+              key={label}
+              onClick={() => setDayRange(value)}
+              className="min-h-11 whitespace-nowrap px-5 py-2 text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: dayRange === value ? branding.colors.primary : branding.colors.card,
+                color: dayRange === value ? '#ffffff' : branding.colors.textSecondary,
+              }}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Stats cards */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
         {[
-          { label: branding.terminology.totalCalls, value: totalCallsShown, Icon: Phone, color: branding.colors.primary, delay: '0ms' },
-          { label: branding.terminology.trialsBooked, value: trialsScheduledShown, Icon: CalendarCheck, color: branding.colors.accent, delay: '60ms' },
-          { label: 'Needs Follow-Up', value: followUpsShown, Icon: AlertCircle, color: '#e11d48', delay: '120ms' },
-          { label: 'Messages', value: messagesShown, Icon: MessageSquare, color: '#d97706', delay: '180ms' },
-        ].map(({ label, value, Icon, color, delay }) => (
+          { label: branding.terminology.totalCalls, value: totalCallsShown, Icon: Phone, color: branding.colors.primary, delay: '0ms', spark: sparkSeries.total },
+          { label: branding.terminology.trialsBooked, value: trialsScheduledShown, Icon: CalendarCheck, color: branding.colors.accent, delay: '60ms', spark: sparkSeries.trial },
+          { label: 'Needs Follow-Up', value: followUpsShown, Icon: AlertCircle, color: '#e11d48', delay: '120ms', spark: sparkSeries.followup },
+          { label: 'Messages', value: messagesShown, Icon: MessageSquare, color: '#d97706', delay: '180ms', spark: sparkSeries.message },
+        ].map(({ label, value, Icon, color, delay, spark }) => (
           <div
             key={label}
             className="anim-rise card-3d relative overflow-hidden rounded-xl border px-5 py-4"
@@ -460,6 +524,9 @@ export default function Dashboard() {
                 <p className="text-xs font-medium" style={{ color: branding.colors.textSecondary }}>{label}</p>
                 <p className="text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{value}</p>
               </div>
+              <div className="relative ml-auto hidden sm:block">
+                <Sparkline points={spark} color={color} />
+              </div>
             </div>
           </div>
         ))}
@@ -468,17 +535,22 @@ export default function Dashboard() {
       {/* Activity feed */}
       <div className="surface-3d rounded-xl border overflow-hidden" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
         {/* Tabs */}
-        <div className="flex overflow-x-auto border-b" style={{ borderColor: branding.colors.border, WebkitOverflowScrolling: 'touch' }}>
+        <div className="relative flex overflow-x-auto border-b" style={{ borderColor: branding.colors.border, WebkitOverflowScrolling: 'touch' }}>
+          {/* Sliding active-tab underline */}
+          <div
+            className="pointer-events-none absolute bottom-0 h-0.5 rounded-full transition-all duration-300 ease-out"
+            style={{ left: tabIndicator.left, width: tabIndicator.width, backgroundColor: branding.colors.primary }}
+          />
           {TABS.map(tab => {
             const isActive = activeTab === tab.key
             const count = categoryCounts[tab.key] || 0
             return (
               <button
                 key={tab.key}
+                ref={el => { tabRefs.current[tab.key] = el }}
                 onClick={() => setActiveTab(tab.key)}
-                className="flex min-h-12 items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors"
+                className="flex min-h-12 items-center gap-2 whitespace-nowrap px-4 py-3 text-sm font-medium transition-colors active:scale-95"
                 style={{
-                  borderColor: isActive ? branding.colors.primary : 'transparent',
                   color: isActive ? branding.colors.primary : branding.colors.textSecondary,
                 }}
               >
@@ -547,7 +619,7 @@ export default function Dashboard() {
                   key={call.id}
                   className={`anim-rise flex min-h-[76px] cursor-pointer items-start gap-3 px-4 py-4 transition-colors hover:bg-slate-50 ${
                     isHandled ? 'opacity-50' : ''
-                  }`}
+                  } ${call.id === flashId ? 'row-new' : ''}`}
                   style={{
                     animationDelay: `${Math.min(rowIndex, 8) * 45}ms`,
                     backgroundColor: isUnread ? 'rgba(24, 103, 192, 0.03)' : 'transparent',

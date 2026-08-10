@@ -259,12 +259,15 @@ const matakas = {
   logo: '/matakas-logo-white.png',
   poweredBy: 'Beacon',
 
-  // Demo simplification: hide the Messages page from the nav (message-type
-  // calls still appear in the Command Center feed and Call History).
-  hiddenNav: ['/messages'],
+  // Demo simplification: hide Messages and the SMS-agent Member Replies queue
+  // (no SMS agent on this demo; message-type calls still appear in the feed).
+  hiddenNav: ['/messages', '/replies'],
 
   // Demo polish: cleaned transcript only — no "Show raw transcript" link.
   hideRawTranscriptToggle: true,
+
+  // Sidebar line under "Powered by Beacon" (defaults to the account name).
+  locationLabel: 'Florence',
 
   terminology: {
     dashboard: 'Command Center',
