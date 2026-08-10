@@ -10,12 +10,14 @@ import {
   LogOut,
   Menu,
   MessageSquareText,
+  Bot,
 } from 'lucide-react'
 import { useState } from 'react'
 
 const navItems = [
   { to: '/', label: 'Command Center', icon: LayoutDashboard },
   { to: '/messages', label: 'Messages', icon: MessageSquareText },
+  { to: '/replies', label: 'Member Replies', icon: Bot },
   { to: '/calls', label: 'Call History', icon: ClipboardList },
   { to: '/analytics', label: 'Analytics', icon: BarChart3 },
   { to: '/settings', label: 'Settings', icon: Settings },
@@ -54,7 +56,12 @@ export default function Layout() {
           transform transition-transform lg:translate-x-0 lg:static lg:z-auto safe-top
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
-        style={{ backgroundColor: branding.colors.sidebar }}
+        style={{
+          backgroundColor: branding.colors.sidebar,
+          // Vertical light-to-shade pass + a soft right-edge drop into the page.
+          backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.045), rgba(0,0,0,0.28))',
+          boxShadow: 'inset -1px 0 0 rgba(255,255,255,0.06), 10px 0 28px -22px rgba(0,0,0,0.55)',
+        }}
       >
         <div className="flex flex-col h-full">
           {/* Logo area — large and prominent */}
@@ -152,7 +159,7 @@ export default function Layout() {
         </main>
 
         <nav
-          className="safe-bottom fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t px-2 py-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] lg:hidden"
+          className="safe-bottom fixed inset-x-0 bottom-0 z-20 grid grid-cols-6 border-t px-2 py-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] lg:hidden"
           style={{
             backgroundColor: branding.colors.card,
             borderColor: branding.colors.border,

@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import CallDetailPanel from '../components/CallDetailPanel'
 import { useBranding } from '../hooks/useBranding'
+import { hexTint } from '../lib/colorTint'
 import {
   Phone, CalendarCheck, MessageSquare, AlertCircle,
   Pin, PinOff, CheckCircle2, Circle, Search, ChevronRight
@@ -371,7 +372,14 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6" style={{ fontFamily: "'Poppins', sans-serif" }}>
+    <div
+      className="space-y-6 rounded-2xl"
+      style={{
+        fontFamily: "'Poppins', sans-serif",
+        // Soft brand wash behind the header, fading into the page surface.
+        backgroundImage: `radial-gradient(120% 220px at 20% 0%, ${hexTint(branding.colors.primary, 0.07)}, rgba(255,255,255,0) 70%)`,
+      }}
+    >
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
@@ -419,61 +427,46 @@ export default function Dashboard() {
 
       {/* Stats cards */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
-        {/* Inquiries Captured */}
-        <div className="anim-rise rounded-lg border px-5 py-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'rgba(24, 103, 192, 0.08)' }}>
-              <Phone size={20} style={{ color: branding.colors.primary }} />
-            </div>
-            <div>
-              <p className="text-xs font-medium" style={{ color: branding.colors.textSecondary }}>{branding.terminology.totalCalls}</p>
-              <p className="text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{totalCallsShown}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Trials Scheduled */}
-        <div className="anim-rise rounded-lg border px-5 py-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md" style={{ animationDelay: '60ms', backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'rgba(72, 169, 166, 0.1)' }}>
-              <CalendarCheck size={20} style={{ color: branding.colors.accent }} />
-            </div>
-            <div>
-              <p className="text-xs font-medium" style={{ color: branding.colors.textSecondary }}>{branding.terminology.trialsBooked}</p>
-              <p className="text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{trialsScheduledShown}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Follow-Ups */}
-        <div className="anim-rise rounded-lg border px-5 py-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md" style={{ animationDelay: '120ms', backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-rose-50">
-              <AlertCircle size={20} className="text-rose-600" />
-            </div>
-            <div>
-              <p className="text-xs font-medium" style={{ color: branding.colors.textSecondary }}>Needs Follow-Up</p>
-              <p className="text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{followUpsShown}</p>
+        {[
+          { label: branding.terminology.totalCalls, value: totalCallsShown, Icon: Phone, color: branding.colors.primary, delay: '0ms' },
+          { label: branding.terminology.trialsBooked, value: trialsScheduledShown, Icon: CalendarCheck, color: branding.colors.accent, delay: '60ms' },
+          { label: 'Needs Follow-Up', value: followUpsShown, Icon: AlertCircle, color: '#e11d48', delay: '120ms' },
+          { label: 'Messages', value: messagesShown, Icon: MessageSquare, color: '#d97706', delay: '180ms' },
+        ].map(({ label, value, Icon, color, delay }) => (
+          <div
+            key={label}
+            className="anim-rise card-3d relative overflow-hidden rounded-xl border px-5 py-4"
+            style={{
+              animationDelay: delay,
+              '--card-glow': hexTint(color, 0.45),
+              backgroundColor: branding.colors.card,
+              backgroundImage: `linear-gradient(160deg, rgba(255,255,255,0) 55%, ${hexTint(color, 0.06)})`,
+              borderColor: branding.colors.border,
+            }}
+          >
+            {/* Watermark icon — depth layer behind the number */}
+            <Icon size={76} className="pointer-events-none absolute -bottom-4 -right-3" style={{ color, opacity: 0.07 }} />
+            <div className="flex items-center gap-3">
+              <div
+                className="chip-3d rounded-lg p-2.5"
+                style={{
+                  '--chip-glow': hexTint(color, 0.5),
+                  backgroundImage: `linear-gradient(135deg, ${hexTint(color, 0.22)}, ${hexTint(color, 0.08)})`,
+                }}
+              >
+                <Icon size={20} style={{ color }} />
+              </div>
+              <div>
+                <p className="text-xs font-medium" style={{ color: branding.colors.textSecondary }}>{label}</p>
+                <p className="text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{value}</p>
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Messages */}
-        <div className="anim-rise rounded-lg border px-5 py-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md" style={{ animationDelay: '180ms', backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-amber-50">
-              <MessageSquare size={20} className="text-amber-600" />
-            </div>
-            <div>
-              <p className="text-xs font-medium" style={{ color: branding.colors.textSecondary }}>Messages</p>
-              <p className="text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{messagesShown}</p>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Activity feed */}
-      <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
+      <div className="surface-3d rounded-xl border overflow-hidden" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
         {/* Tabs */}
         <div className="flex overflow-x-auto border-b" style={{ borderColor: branding.colors.border, WebkitOverflowScrolling: 'touch' }}>
           {TABS.map(tab => {

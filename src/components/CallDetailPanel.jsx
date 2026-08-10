@@ -5,14 +5,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useClientFlags } from '../hooks/useClientFlags'
 import { useBranding } from '../hooks/useBranding'
-
-// Translucent tint of a brand hex color (agent bubbles, subtle fills).
-function hexTint(hex, alpha) {
-  const m = /^#?([0-9a-f]{6})$/i.exec(hex || '')
-  if (!m) return `rgba(0, 0, 0, ${alpha})`
-  const n = parseInt(m[1], 16)
-  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
-}
+import { hexTint } from '../lib/colorTint'
 
 // A call is a cancellation request if its outcome/type says so.
 function isCancellationCall(call) {
@@ -137,8 +130,14 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
           {/* Caller info with delete button */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-                <User size={20} className="text-gray-500" />
+              <div
+                className="chip-3d flex h-12 w-12 items-center justify-center rounded-full"
+                style={{
+                  '--chip-glow': hexTint(branding.colors.primary, 0.5),
+                  backgroundImage: `linear-gradient(135deg, ${branding.colors.primary}, ${branding.colors.primaryDark || branding.colors.primary})`,
+                }}
+              >
+                <User size={20} className="text-white" />
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
