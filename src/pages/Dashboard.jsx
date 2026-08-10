@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import CallDetailPanel from '../components/CallDetailPanel'
@@ -8,6 +8,32 @@ import {
   Pin, PinOff, CheckCircle2, Circle, Search, ChevronRight
 } from 'lucide-react'
 import { format, isToday, isYesterday, parseISO, subDays } from 'date-fns'
+
+// Animate a stat toward its target (ease-out); honors prefers-reduced-motion.
+function useCountUp(target, duration = 700) {
+  const [value, setValue] = useState(target)
+  const fromRef = useRef(0)
+  useEffect(() => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      fromRef.current = target
+      setValue(target)
+      return
+    }
+    const from = fromRef.current
+    const start = performance.now()
+    let raf
+    const tick = now => {
+      const t = Math.min((now - start) / duration, 1)
+      const eased = 1 - Math.pow(1 - t, 3)
+      setValue(Math.round(from + (target - from) * eased))
+      if (t < 1) raf = requestAnimationFrame(tick)
+      else fromRef.current = target
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [target, duration])
+  return value
+}
 
 const TABS = [
   { key: 'all', label: 'All Calls' },
@@ -331,6 +357,11 @@ export default function Dashboard() {
   const followUps = categoryCounts.followup
   const messages = categoryCounts.message
 
+  const totalCallsShown = useCountUp(totalCalls)
+  const trialsScheduledShown = useCountUp(trialsScheduled)
+  const followUpsShown = useCountUp(followUps)
+  const messagesShown = useCountUp(messages)
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -389,53 +420,53 @@ export default function Dashboard() {
       {/* Stats cards */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
         {/* Inquiries Captured */}
-        <div className="rounded-lg border px-5 py-4" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
+        <div className="anim-rise rounded-lg border px-5 py-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'rgba(24, 103, 192, 0.08)' }}>
               <Phone size={20} style={{ color: branding.colors.primary }} />
             </div>
             <div>
               <p className="text-xs font-medium" style={{ color: branding.colors.textSecondary }}>{branding.terminology.totalCalls}</p>
-              <p className="text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{totalCalls}</p>
+              <p className="text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{totalCallsShown}</p>
             </div>
           </div>
         </div>
 
         {/* Trials Scheduled */}
-        <div className="rounded-lg border px-5 py-4" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
+        <div className="anim-rise rounded-lg border px-5 py-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md" style={{ animationDelay: '60ms', backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'rgba(72, 169, 166, 0.1)' }}>
               <CalendarCheck size={20} style={{ color: branding.colors.accent }} />
             </div>
             <div>
               <p className="text-xs font-medium" style={{ color: branding.colors.textSecondary }}>{branding.terminology.trialsBooked}</p>
-              <p className="text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{trialsScheduled}</p>
+              <p className="text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{trialsScheduledShown}</p>
             </div>
           </div>
         </div>
 
         {/* Follow-Ups */}
-        <div className="rounded-lg border px-5 py-4" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
+        <div className="anim-rise rounded-lg border px-5 py-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md" style={{ animationDelay: '120ms', backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-lg bg-rose-50">
               <AlertCircle size={20} className="text-rose-600" />
             </div>
             <div>
               <p className="text-xs font-medium" style={{ color: branding.colors.textSecondary }}>Needs Follow-Up</p>
-              <p className="text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{followUps}</p>
+              <p className="text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{followUpsShown}</p>
             </div>
           </div>
         </div>
 
         {/* Messages */}
-        <div className="rounded-lg border px-5 py-4" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
+        <div className="anim-rise rounded-lg border px-5 py-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md" style={{ animationDelay: '180ms', backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-lg bg-amber-50">
               <MessageSquare size={20} className="text-amber-600" />
             </div>
             <div>
               <p className="text-xs font-medium" style={{ color: branding.colors.textSecondary }}>Messages</p>
-              <p className="text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{messages}</p>
+              <p className="text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{messagesShown}</p>
             </div>
           </div>
         </div>
@@ -506,7 +537,7 @@ export default function Dashboard() {
               <p className="text-sm" style={{ color: '#94a3b8' }}>No activity in this category</p>
             </div>
           ) : (
-            paginatedCalls.map(call => {
+            paginatedCalls.map((call, rowIndex) => {
               const cat = call._category
               const rowCat = activeTab === 'deleted' ? 'deleted' : call.needs_follow_up && !call.handled ? 'followup' : cat
               const style = CATEGORY_STYLES[rowCat] || CATEGORY_STYLES.misc
@@ -521,10 +552,13 @@ export default function Dashboard() {
               return (
                 <div
                   key={call.id}
-                  className={`flex min-h-[76px] cursor-pointer items-start gap-3 px-4 py-4 transition-colors hover:bg-slate-50 ${
+                  className={`anim-rise flex min-h-[76px] cursor-pointer items-start gap-3 px-4 py-4 transition-colors hover:bg-slate-50 ${
                     isHandled ? 'opacity-50' : ''
                   }`}
-                  style={{ backgroundColor: isUnread ? 'rgba(24, 103, 192, 0.03)' : 'transparent' }}
+                  style={{
+                    animationDelay: `${Math.min(rowIndex, 8) * 45}ms`,
+                    backgroundColor: isUnread ? 'rgba(24, 103, 192, 0.03)' : 'transparent',
+                  }}
                   onClick={() => markAsRead(call)}
                 >
                   {/* Handled checkbox */}

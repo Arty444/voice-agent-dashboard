@@ -16,6 +16,26 @@ textarea {
   touch-action: manipulation;
 }
 
+/* Motion: entrance + panel animations. Guarded for reduced-motion below. */
+@keyframes fadeRise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.anim-rise    { animation: fadeRise 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.anim-panel   { animation: slideInRight 0.28s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.anim-overlay { animation: fadeIn 0.2s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .anim-rise, .anim-panel, .anim-overlay { animation: none; }
+}
+
 .safe-top {
   padding-top: env(safe-area-inset-top);
 }

@@ -6,6 +6,14 @@ import { useAuth } from '../context/AuthContext'
 import { useClientFlags } from '../hooks/useClientFlags'
 import { useBranding } from '../hooks/useBranding'
 
+// Translucent tint of a brand hex color (agent bubbles, subtle fills).
+function hexTint(hex, alpha) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || '')
+  if (!m) return `rgba(0, 0, 0, ${alpha})`
+  const n = parseInt(m[1], 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
+}
+
 // A call is a cancellation request if its outcome/type says so.
 function isCancellationCall(call) {
   const outcome = String(call?.final_outcome || '').trim().toLowerCase()
@@ -115,8 +123,8 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
-      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="safe-bottom relative h-full w-full max-w-xl overflow-y-auto bg-white shadow-xl" style={{ WebkitOverflowScrolling: 'touch' }}>
+      <div className="anim-overlay absolute inset-0 bg-black/30" onClick={onClose} />
+      <div className="anim-panel safe-bottom relative h-full w-full max-w-xl overflow-y-auto bg-white shadow-xl" style={{ WebkitOverflowScrolling: 'touch' }}>
         {/* Header */}
         <div className="safe-top sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
           <h2 className="text-lg font-semibold text-gray-900">Call Details</h2>
@@ -409,10 +417,14 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
                       <div
                         key={i}
                         className={`rounded-lg px-3 py-2 text-sm leading-relaxed ${
-                          turn.who === 'agent' ? 'bg-blue-50 text-gray-700' : 'bg-white border border-gray-200 text-gray-800'
+                          turn.who === 'agent' ? 'text-gray-700' : 'bg-white border border-gray-200 text-gray-800'
                         }`}
+                        style={turn.who === 'agent' ? { backgroundColor: hexTint(branding.colors.primary, 0.08) } : undefined}
                       >
-                        <span className="font-semibold mr-1">{turn.who === 'agent' ? 'Agent' : 'Caller'}:</span>
+                        <span
+                          className="font-semibold mr-1"
+                          style={turn.who === 'agent' ? { color: branding.colors.primaryDark || branding.colors.primary } : undefined}
+                        >{turn.who === 'agent' ? 'Agent' : 'Caller'}:</span>
                         {turn.text}
                         {(turn.notes || []).map((note, j) => (
                           <div key={j} className="mt-1 text-xs italic text-gray-400">
