@@ -113,7 +113,11 @@ order by client_id, public.norm_phone(caller_phone), call_date desc, created_at 
 
 -- ── calls_with_member: what the dashboard reads instead of `calls` ──────────
 -- Dropped + recreated (not CREATE OR REPLACE) because the column set changes
--- as we add/reorder fields. Nothing depends on this view, so the drop is safe.
+-- as we add/reorder fields. NOTE: `c.*` is frozen at creation time — any new
+-- column added to `calls` (e.g. transcript_display) requires re-running this.
+-- cancellation_queue (supabase_cancellation_jobs.sql) depends on this view:
+-- drop it first and recreate it after, in the same script.
+drop view if exists public.cancellation_queue;
 drop view if exists public.calls_with_member;
 create view public.calls_with_member
 with (security_invoker = true) as
@@ -147,3 +151,6 @@ left join public.phone_names pn
  and pn.phone_norm = public.norm_phone(c.caller_phone);
 
 grant select on public.member_by_phone, public.phone_names, public.calls_with_member to authenticated;
+
+-- Reminder: after recreating calls_with_member, re-run the cancellation_queue
+-- block from supabase_cancellation_jobs.sql (it was dropped above).
