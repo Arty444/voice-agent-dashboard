@@ -19,6 +19,7 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
   const [isEditingNote, setIsEditingNote] = useState(false)
   const [noteDraft, setNoteDraft] = useState('')
   const [isSavingNote, setIsSavingNote] = useState(false)
+  const [showRawTranscript, setShowRawTranscript] = useState(false)
 
   // Cancel-membership controls
   const [showCancelMenu, setShowCancelMenu] = useState(false)
@@ -32,6 +33,7 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
     setIsSavingNote(false)
     setShowCancelMenu(false)
     setPendingMode(null)
+    setShowRawTranscript(false)
   }, [call?.id, call?.staff_note])
 
   // Track this call's cancellation job (initial fetch + live updates).
@@ -382,14 +384,49 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
             )}
           </div>
 
-          {/* Transcript */}
+          {/* Transcript. transcript_display is reconstructed from word timestamps
+              (split sentences re-joined, simultaneous speech marked as overlap);
+              the raw ASR transcript is always kept and one tap away. */}
           {call.transcript && (
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">Transcript</h3>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold text-gray-900">Transcript</h3>
+                {Array.isArray(call.transcript_display) && call.transcript_display.length > 0 && (
+                  <button
+                    onClick={() => setShowRawTranscript(v => !v)}
+                    className="text-xs text-gray-500 hover:text-gray-700 underline underline-offset-2"
+                  >
+                    {showRawTranscript ? 'Show cleaned view' : 'Show raw transcript'}
+                  </button>
+                )}
+              </div>
               <div className="max-h-[45vh] overflow-y-auto rounded-lg bg-gray-50 p-4" style={{ WebkitOverflowScrolling: 'touch' }}>
-                <pre className="text-sm text-gray-600 whitespace-pre-wrap font-sans leading-relaxed">
-                  {call.transcript}
-                </pre>
+                {Array.isArray(call.transcript_display) && call.transcript_display.length > 0 && !showRawTranscript ? (
+                  <div className="space-y-2.5">
+                    {call.transcript_display.map((turn, i) => (
+                      <div
+                        key={i}
+                        className={`rounded-lg px-3 py-2 text-sm leading-relaxed ${
+                          turn.who === 'agent' ? 'bg-blue-50 text-gray-700' : 'bg-white border border-gray-200 text-gray-800'
+                        }`}
+                      >
+                        <span className="font-semibold mr-1">{turn.who === 'agent' ? 'Agent' : 'Caller'}:</span>
+                        {turn.text}
+                        {(turn.notes || []).map((note, j) => (
+                          <div key={j} className="mt-1 text-xs italic text-gray-400">
+                            {note.inaudible
+                              ? `· brief inaudible audio from ${note.who} ·`
+                              : `⧉ ${note.who}, speaking over: “${note.text}”`}
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <pre className="text-sm text-gray-600 whitespace-pre-wrap font-sans leading-relaxed">
+                    {call.transcript}
+                  </pre>
+                )}
               </div>
             </div>
           )}
