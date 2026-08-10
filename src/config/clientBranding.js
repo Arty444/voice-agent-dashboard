@@ -263,6 +263,9 @@ const matakas = {
   // calls still appear in the Command Center feed and Call History).
   hiddenNav: ['/messages'],
 
+  // Demo polish: cleaned transcript only — no "Show raw transcript" link.
+  hideRawTranscriptToggle: true,
+
   terminology: {
     dashboard: 'Command Center',
     subtitle: 'Today at Matakas Jiu Jitsu',

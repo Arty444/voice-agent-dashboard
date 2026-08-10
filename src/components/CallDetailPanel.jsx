@@ -4,6 +4,7 @@ import Badge from './Badge'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useClientFlags } from '../hooks/useClientFlags'
+import { useBranding } from '../hooks/useBranding'
 
 // A call is a cancellation request if its outcome/type says so.
 function isCancellationCall(call) {
@@ -16,6 +17,7 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
   const { user } = useAuth()
   // The cancel-membership bot only runs for EFC-enabled clients (clients.efc_enabled).
   const { efcEnabled } = useClientFlags(call?.client_id)
+  const branding = useBranding()
   const [isEditingNote, setIsEditingNote] = useState(false)
   const [noteDraft, setNoteDraft] = useState('')
   const [isSavingNote, setIsSavingNote] = useState(false)
@@ -391,7 +393,7 @@ export default function CallDetailPanel({ call, onClose, onToggleHandled, onTogg
             <div>
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-semibold text-gray-900">Transcript</h3>
-                {Array.isArray(call.transcript_display) && call.transcript_display.length > 0 && (
+                {Array.isArray(call.transcript_display) && call.transcript_display.length > 0 && !branding.hideRawTranscriptToggle && (
                   <button
                     onClick={() => setShowRawTranscript(v => !v)}
                     className="text-xs text-gray-500 hover:text-gray-700 underline underline-offset-2"
