@@ -335,13 +335,18 @@ export default function Dashboard() {
     return [...filteredCalls].sort((a, b) => {
       if (a.pinned && !b.pinned) return -1
       if (!a.pinned && b.pinned) return 1
-      if (needsStaffFollowUp(a) && !needsStaffFollowUp(b)) return -1
-      if (!needsStaffFollowUp(a) && needsStaffFollowUp(b)) return 1
-      if (!a.handled && b.handled) return -1
-      if (a.handled && !b.handled) return 1
+      // The All Calls tab is the live feed: strictly newest-first, so a call
+      // that just ended is always visible at the top. Attention-first ranking
+      // stays on the other tabs (Needs Follow-Up has its own tab + red rows).
+      if (activeTab !== 'all') {
+        if (needsStaffFollowUp(a) && !needsStaffFollowUp(b)) return -1
+        if (!needsStaffFollowUp(a) && needsStaffFollowUp(b)) return 1
+        if (!a.handled && b.handled) return -1
+        if (a.handled && !b.handled) return 1
+      }
       return new Date(b.created_at) - new Date(a.created_at)
     })
-  }, [filteredCalls])
+  }, [filteredCalls, activeTab])
 
   const totalPages = Math.max(1, Math.ceil(sortedCalls.length / CALLS_PER_PAGE))
   const paginatedCalls = useMemo(() => {
