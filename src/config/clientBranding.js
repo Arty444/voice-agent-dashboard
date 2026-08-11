@@ -331,13 +331,32 @@ const matakas = {
   },
 }
 
+// Hamilton Academy — same Matakas brand, its own client/agent/programs.
+const matakasHamilton = {
+  ...matakas,
+  shortName: 'Matakas Hamilton',
+  locationLabel: 'Hamilton',
+  terminology: {
+    ...matakas.terminology,
+    subtitle: 'Today at Matakas Hamilton',
+  },
+  // Hamilton's own age bands: adults start at 12, one Youth program, 3yo class.
+  programs: [
+    '3 Year Old Program',
+    'Tiny Tykes',
+    'Youth',
+    'Adults',
+  ],
+}
+
 // Keyed by Supabase clients.id
 export const BRANDINGS = {
   '6d047c8a-bedf-4feb-9223-803c57a8ce1a': mchugh,    // McHugh Jiu Jitsu HQ
   'd094ef3f-0b1d-4054-b47e-16596855a51b': teamBundy, // Team Bundy Jiu-Jitsu
   '5503c49f-bd9c-438a-a4cd-4e2d583b0319': roneyEdler, // Roney Edler Brazilian Jiu-Jitsu
   '2a94f278-af97-4400-9737-3080752c4ae9': gbArcadia,  // Gracie Barra Arcadia
-  'b807d455-368f-4c34-b666-6ce98a084722': matakas,    // Matakas Jiu Jitsu
+  'b807d455-368f-4c34-b666-6ce98a084722': matakas,    // Matakas Jiu Jitsu (Florence)
+  '9d0c7695-52d5-4a0d-8f46-e704997610a6': matakasHamilton, // Matakas Jiu Jitsu Hamilton
 }
 
 // Resolve branding for the logged-in client; default to McHugh for
