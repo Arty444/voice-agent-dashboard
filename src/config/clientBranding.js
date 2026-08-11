@@ -334,12 +334,7 @@ const matakas = {
 // Hamilton Academy — same Matakas brand, its own client/agent/programs.
 const matakasHamilton = {
   ...matakas,
-  shortName: 'Matakas Hamilton',
   locationLabel: 'Hamilton',
-  terminology: {
-    ...matakas.terminology,
-    subtitle: 'Today at Matakas Hamilton',
-  },
   // Hamilton's own age bands: adults start at 12, one Youth program, 3yo class.
   programs: [
     '3 Year Old Program',
