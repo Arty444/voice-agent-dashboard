@@ -9,7 +9,7 @@ const mchugh = {
   name: 'McHugh Jiu Jitsu',
   shortName: 'McHugh',
   logo: '/mchugh-logo-white.png',
-  poweredBy: 'Beacon',
+  poweredBy: 'Beacon Systems',
 
   // McHugh runs the SMS agent — show its Member Replies approval queue.
   // (Hidden by default for every other client.)
@@ -74,7 +74,7 @@ const teamBundy = {
   name: 'Team Bundy Jiu-Jitsu',
   shortName: 'Team Bundy',
   logo: '/team-bundy-logo-white.png',
-  poweredBy: 'Beacon',
+  poweredBy: 'Beacon Systems',
 
   terminology: {
     dashboard: 'Command Center',
@@ -130,7 +130,7 @@ const roneyEdler = {
   name: 'Roney Edler Brazilian Jiu-Jitsu',
   shortName: 'Roney Edler BJJ',
   logo: '/roney-edler-logo-white.png',
-  poweredBy: 'Beacon',
+  poweredBy: 'Beacon Systems',
 
   terminology: {
     dashboard: 'Command Center',
@@ -192,7 +192,7 @@ const gbArcadia = {
   name: 'Gracie Barra Phoenix',
   shortName: 'GB Arcadia',
   logo: '/gb-arcadia-logo-white.png',
-  poweredBy: 'Beacon',
+  poweredBy: 'Beacon Systems',
 
   // Demo simplification: hide the Messages page from the nav (message-type
   // calls still appear in the Command Center feed and Call History).
@@ -261,7 +261,7 @@ const matakas = {
   name: 'Matakas Jiu Jitsu',
   shortName: 'Matakas',
   logo: '/matakas-logo-white.png',
-  poweredBy: 'Beacon',
+  poweredBy: 'Beacon Systems',
 
   // Demo simplification: hide the Messages page from the nav
   // (message-type calls still appear in the Command Center feed).
