@@ -617,7 +617,7 @@ export default function Dashboard() {
               return (
                 <div
                   key={call.id}
-                  className={`anim-rise flex min-h-[76px] cursor-pointer items-start gap-3 px-4 py-4 transition-colors hover:bg-slate-50 ${
+                  className={`anim-rise flex min-h-[76px] cursor-pointer items-start gap-3 px-4 py-4 transition-all duration-200 hover:bg-slate-50 ${
                     isHandled ? 'opacity-50' : ''
                   } ${call.id === flashId ? 'row-new' : ''}`}
                   style={{
