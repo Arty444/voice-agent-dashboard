@@ -11,6 +11,10 @@ const mchugh = {
   logo: '/mchugh-logo-white.png',
   poweredBy: 'Beacon',
 
+  // McHugh runs the SMS agent — show its Member Replies approval queue.
+  // (Hidden by default for every other client.)
+  smsRepliesEnabled: true,
+
   // Terminology — maps generic labels to client-specific language
   terminology: {
     dashboard: 'Command Center',
@@ -259,9 +263,9 @@ const matakas = {
   logo: '/matakas-logo-white.png',
   poweredBy: 'Beacon',
 
-  // Demo simplification: hide Messages and the SMS-agent Member Replies queue
-  // (no SMS agent on this demo; message-type calls still appear in the feed).
-  hiddenNav: ['/messages', '/replies'],
+  // Demo simplification: hide the Messages page from the nav
+  // (message-type calls still appear in the Command Center feed).
+  hiddenNav: ['/messages'],
 
   // Demo polish: cleaned transcript only — no "Show raw transcript" link.
   hideRawTranscriptToggle: true,

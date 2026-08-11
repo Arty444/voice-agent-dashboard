@@ -37,6 +37,10 @@ export default function Layout() {
   const displayName = clientData?.business_name || user?.email || ''
   const visibleNavItems = navItems.filter(
     ({ to }) => !(branding.hiddenNav || []).includes(to)
+  ).filter(
+    // Member Replies is the SMS-agent approval queue — opt-in per client,
+    // hidden everywhere else (most clients have no SMS agent).
+    ({ to }) => to !== '/replies' || branding.smsRepliesEnabled
   )
 
   return (
@@ -72,16 +76,16 @@ export default function Layout() {
               className="w-48 h-48 object-contain mb-4"
             />
             <h1
-              className="text-xl font-bold text-white"
+              className="text-2xl font-bold text-white"
               style={{ fontFamily: "'Khand', sans-serif", letterSpacing: '0.03em' }}
             >
               {branding.name}
             </h1>
-            <p className="text-[11px] tracking-widest mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            <p className="text-[13px] tracking-widest mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
               Powered by {branding.poweredBy}
             </p>
             {(branding.locationLabel || displayName) && (
-              <p className="text-xs mt-3 truncate w-full" style={{ color: branding.colors.sidebarText }}>
+              <p className="text-sm mt-3 truncate w-full" style={{ color: branding.colors.sidebarText }}>
                 {branding.locationLabel || displayName}
               </p>
             )}
