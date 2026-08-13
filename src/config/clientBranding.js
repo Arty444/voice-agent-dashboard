@@ -71,7 +71,7 @@ const mchugh = {
 
 const teamBundy = {
   // Identity
-  name: 'Team Bundy Jiu-Jitsu',
+  name: 'Team Bundy Jiu Jitsu',
   shortName: 'Team Bundy',
   logo: '/team-bundy-logo-white.png',
   poweredBy: 'Beacon Systems',
