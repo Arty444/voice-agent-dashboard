@@ -76,6 +76,16 @@ const teamBundy = {
   logo: '/team-bundy-logo-white.png',
   poweredBy: 'Beacon Systems',
 
+  // Demo simplification (Matakas pattern): hide the Messages page from the
+  // nav — message-type calls still appear in the Command Center feed.
+  hiddenNav: ['/messages'],
+
+  // Demo polish: cleaned transcript only — no "Show raw transcript" link.
+  hideRawTranscriptToggle: true,
+
+  // Sidebar line under "Powered by Beacon" (defaults to the account name).
+  locationLabel: 'Warren',
+
   terminology: {
     dashboard: 'Command Center',
     subtitle: 'Today at Team Bundy',
@@ -102,10 +112,13 @@ const teamBundy = {
     newInquiry: 'New Inquiry',
   },
 
+  // Matches the Retell post-call `program` enum (fixed 2026-08-13 — the
+  // agent reports adults as "Adult Jiu-Jitsu", not the class name
+  // "Fighting Fundamentals").
   programs: [
     'Kids Jiu-Jitsu',
     'Teen Jiu-Jitsu',
-    'Fighting Fundamentals',
+    'Adult Jiu-Jitsu',
   ],
 
   // Color palette — sourced from teambundymma.com (navy + white)
@@ -117,6 +130,8 @@ const teamBundy = {
     sidebar: '#0B2A47',       // Deep navy — sidebar background
     sidebarText: '#dbe4ee',   // Light blue-gray — sidebar text
     sidebarActive: '#13518C', // Navy — active nav item
+    sidebarActiveBg: 'rgba(19, 81, 140, 0.25)', // Navy tint — active nav background
+    sidebarActiveText: '#8FC1F2', // Light navy-blue — active nav label on dark sidebar
     surface: '#F5F6F8',       // Light gray — page background
     card: '#FFFFFF',          // White — card backgrounds
     text: '#1e293b',          // Near-black — primary text

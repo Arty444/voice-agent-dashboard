@@ -335,14 +335,17 @@ export default function Dashboard() {
     return [...filteredCalls].sort((a, b) => {
       if (a.pinned && !b.pinned) return -1
       if (!a.pinned && b.pinned) return 1
-      // The All Calls tab is the live feed: strictly newest-first, so a call
-      // that just ended is always visible at the top. Attention-first ranking
-      // stays on the other tabs (Needs Follow-Up has its own tab + red rows).
+      // Handled calls sink below unhandled ones on every tab, including All
+      // Calls. The webhook never marks a fresh call handled, so the live feed
+      // still shows what just ended at the top — sinking only what staff have
+      // already cleared.
+      if (!a.handled && b.handled) return -1
+      if (a.handled && !b.handled) return 1
+      // Follow-up priority ranking stays off the All Calls tab so fresh
+      // hang-ups are never buried behind older unhandled trials.
       if (activeTab !== 'all') {
         if (needsStaffFollowUp(a) && !needsStaffFollowUp(b)) return -1
         if (!needsStaffFollowUp(a) && needsStaffFollowUp(b)) return 1
-        if (!a.handled && b.handled) return -1
-        if (a.handled && !b.handled) return 1
       }
       return new Date(b.created_at) - new Date(a.created_at)
     })
