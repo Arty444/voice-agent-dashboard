@@ -453,7 +453,7 @@ export default function Dashboard() {
     <div
       className="space-y-6 rounded-2xl"
       style={{
-        fontFamily: "'Poppins', sans-serif",
+        fontFamily: 'var(--font-body)',
         // Soft brand wash behind the header, fading into the page surface.
         backgroundImage: `radial-gradient(120% 220px at 20% 0%, ${hexTint(branding.colors.primary, 0.07)}, rgba(255,255,255,0) 70%)`,
       }}
@@ -464,7 +464,7 @@ export default function Dashboard() {
           <h1
             className="font-bold leading-tight"
             style={{
-              fontFamily: "'Khand', sans-serif",
+              fontFamily: 'var(--font-heading)',
               color: branding.colors.text,
               fontSize: 'clamp(1.5rem, 6vw, 1.75rem)',
               letterSpacing: '0.01em',
@@ -539,7 +539,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-xs font-medium" style={{ color: branding.colors.textSecondary }}>{label}</p>
-                <p className="text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{value}</p>
+                <p className="text-3xl font-bold" style={{ fontFamily: 'var(--font-heading)', color: branding.colors.text }}>{value}</p>
               </div>
               <div className="relative ml-auto hidden sm:block">
                 <Sparkline points={spark} color={color} />

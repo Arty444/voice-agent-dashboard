@@ -44,7 +44,16 @@ export default function Layout() {
   )
 
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: branding.colors.surface, fontFamily: "'Poppins', sans-serif" }}>
+    <div
+      className="min-h-screen flex"
+      style={{
+        backgroundColor: branding.colors.surface,
+        fontFamily: 'var(--font-body)',
+        // Per-tenant type, read by every page below via the CSS vars.
+        '--font-heading': branding.fonts.heading,
+        '--font-body': branding.fonts.body,
+      }}
+    >
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -70,18 +79,26 @@ export default function Layout() {
         <div className="flex flex-col h-full">
           {/* Logo area — large and prominent */}
           <div className="px-6 pt-8 pb-6 border-b border-white/10 flex flex-col items-center text-center">
+            {/* A wordmark logo already spells out the business name, so it gets a
+                wide/short box and the name heading below it is suppressed.
+                Crest-style logos keep the square box and the heading. */}
             <img
               src={branding.logo}
               alt={branding.name}
-              className="w-48 h-48 object-contain mb-4"
+              className={branding.logoWordmark ? 'w-52 h-20 object-contain mb-3' : 'w-48 h-48 object-contain mb-4'}
             />
-            <h1
-              className="text-2xl font-bold text-white"
-              style={{ fontFamily: "'Khand', sans-serif", letterSpacing: '0.03em' }}
+            {!branding.logoWordmark && (
+              <h1
+                className="text-2xl font-bold text-white"
+                style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.03em' }}
+              >
+                {branding.name}
+              </h1>
+            )}
+            <p
+              className="text-[13px] tracking-widest mt-1"
+              style={{ color: branding.colors.sidebarMuted || 'rgba(255,255,255,0.4)' }}
             >
-              {branding.name}
-            </h1>
-            <p className="text-[13px] tracking-widest mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
               Powered by {branding.poweredBy}
             </p>
             {(branding.locationLabel || displayName) && (
@@ -153,7 +170,11 @@ export default function Layout() {
           <button onClick={() => setSidebarOpen(true)} className="flex h-11 w-11 items-center justify-center rounded-lg text-white hover:bg-white/10">
             <Menu size={24} />
           </button>
-          <img src={branding.logo} alt={branding.name} className="w-8 h-8 object-contain" />
+          <img
+            src={branding.logo}
+            alt={branding.name}
+            className={branding.logoWordmark ? 'h-7 w-auto max-w-[160px] object-contain' : 'w-8 h-8 object-contain'}
+          />
           <div className="w-6" />
         </header>
 

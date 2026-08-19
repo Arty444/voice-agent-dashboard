@@ -139,7 +139,7 @@ function StatCard({ icon: Icon, label, value, detail, tone = 'blue' }) {
         </div>
         <div className="min-w-0">
           <p className="text-xs font-semibold" style={{ color: branding.colors.textSecondary }}>{label}</p>
-          <p className="mt-1 text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{value}</p>
+          <p className="mt-1 text-3xl font-bold" style={{ fontFamily: 'var(--font-heading)', color: branding.colors.text }}>{value}</p>
           {detail && <p className="mt-1 text-xs" style={{ color: branding.colors.textSecondary }}>{detail}</p>}
         </div>
       </div>
@@ -339,10 +339,10 @@ export default function Analytics() {
   }
 
   return (
-    <div className="space-y-6" style={{ fontFamily: "'Poppins', sans-serif" }}>
+    <div className="space-y-6" style={{ fontFamily: 'var(--font-body)' }}>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-2xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text, fontSize: '1.75rem', letterSpacing: '0.01em' }}>
+          <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-heading)', color: branding.colors.text, fontSize: '1.75rem', letterSpacing: '0.01em' }}>
             Owner Analytics
           </h1>
           <p className="mt-0.5 text-sm" style={{ color: branding.colors.textSecondary }}>
@@ -512,7 +512,7 @@ export default function Analytics() {
               <div key={bucket.label} className="rounded-lg border p-4" style={{ borderColor: branding.colors.border, backgroundColor: branding.colors.surface }}>
                 <p className="text-sm font-bold" style={{ color: branding.colors.text }}>{bucket.label}</p>
                 <p className="mt-0.5 text-xs" style={{ color: branding.colors.textSecondary }}>{bucket.range}</p>
-                <p className="mt-2 text-2xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{bucket.calls}</p>
+                <p className="mt-2 text-2xl font-bold" style={{ fontFamily: 'var(--font-heading)', color: branding.colors.text }}>{bucket.calls}</p>
                 <p className="text-xs" style={{ color: branding.colors.textSecondary }}>{bucket.trials} {lexicon.bookingsLower} {lexicon.demandVerb}</p>
               </div>
             ))}

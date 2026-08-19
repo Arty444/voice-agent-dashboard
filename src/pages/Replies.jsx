@@ -104,10 +104,10 @@ export default function Replies({ previewDrafts = null }) {
   }
 
   return (
-    <div style={{ fontFamily: "'Poppins', sans-serif" }}>
+    <div style={{ fontFamily: 'var(--font-body)' }}>
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: c.text, fontFamily: "'Khand', sans-serif", letterSpacing: '0.02em' }}>
+          <h1 className="text-2xl font-bold" style={{ color: c.text, fontFamily: 'var(--font-heading)', letterSpacing: '0.02em' }}>
             Member Replies
           </h1>
           <p className="text-sm" style={{ color: c.textSecondary }}>

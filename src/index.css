@@ -1,3 +1,10 @@
+:root {
+  /* Typeface defaults. Layout overrides these per logged-in client from
+     the branding entry, so a tenant can carry its own type. */
+  --font-heading: "Khand", sans-serif;
+  --font-body: "Poppins", sans-serif;
+}
+
 @import "tailwindcss";
 
 html {

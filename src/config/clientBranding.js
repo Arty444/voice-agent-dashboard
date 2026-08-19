@@ -8,6 +8,13 @@
 // academy lives here, so a non-gym vertical (chiropractic, ortho, clinic) can
 // re-word the UI without a code change. Entries omit `lexicon` entirely and
 // keep the gym wording below, byte for byte.
+// Typefaces. Layout writes these into --font-heading / --font-body, so a
+// tenant whose own site has a distinct type voice can carry it here.
+const DEFAULT_FONTS = {
+  heading: "'Khand', sans-serif",
+  body: "'Poppins', sans-serif",
+}
+
 const DEFAULT_LEXICON = {
   bookingTab: 'Trial Classes',              // activity-feed tab + Call History filter
   bookingBadge: 'Trial',                    // row badge on a booked call
@@ -398,6 +405,9 @@ const cassara = {
   name: 'Cassara Chiropractic Center',
   shortName: 'Cassara Chiropractic',
   logo: '/cassara-logo-white.png',
+  // The logo is a full wordmark ("CASSARA CHIROPRACTIC CENTER, LLC"), so the
+  // sidebar skips the name heading that crest-style logos need.
+  logoWordmark: true,
   poweredBy: 'Beacon Systems',
 
   // Demo simplification: hide the Messages page from the nav (message-type
@@ -475,31 +485,46 @@ const cassara = {
     'Custom Orthotics',
   ],
 
-  // Color palette — sourced from drcassara.com (blue #005bba, navy #12266c,
-  // green #46a443, red #ed2024, warm grays). Deep navy sidebar carries the
-  // white script-S wordmark.
+  // Typography — drcassara.com sets headings in Oswald and body in Mulish.
+  fonts: {
+    heading: "'Oswald', sans-serif",
+    body: "'Mulish', sans-serif",
+  },
+
+  // Color palette — sampled from the rendered drcassara.com, not the
+  // stylesheet: #005BBA is the only brand color actually in play, over
+  // #F8F8F9 / white with #2B2B2A headings and #58585A body copy. The site's
+  // own footer is solid #005BBA carrying the white script-S wordmark, so the
+  // sidebar reproduces that exact treatment rather than inventing a navy.
   colors: {
     primary: '#005BBA',       // Cassara blue — active states, tabs, links
-    primaryDark: '#12266C',   // Brand navy
-    accent: '#46A443',        // Brand green — success, confirmed states
-    alert: '#ED2024',         // Brand red — attention, urgent items
-    sidebar: '#0F1D3D',       // Deep navy — sidebar background
-    sidebarText: '#e2e8f0',   // Light gray — sidebar text
-    sidebarActive: '#4A9BE8', // Light blue — active nav item
-    sidebarActiveBg: 'rgba(0, 91, 186, 0.22)', // Blue tint — active nav background
-    sidebarActiveText: '#8CC3F5', // Pale blue — active nav label on dark sidebar
-    surface: '#F5F6F8',       // Off-white — page background
+    primaryDark: '#004A99',   // Deeper blue — hover/pressed
+    accent: '#12A594',        // Teal — success, confirmed states (reads apart
+                              // from the blue in charts; the site has none)
+    alert: '#ED2024',         // Brand red from their stylesheet — urgent items
+    sidebar: '#005BBA',       // Brand blue — matches the site footer
+    sidebarText: '#DCE9F7',   // Pale blue-white — sidebar text
+    sidebarActive: '#FFFFFF', // White — active nav item
+    sidebarActiveBg: 'rgba(255, 255, 255, 0.16)', // White wash — active nav background
+    sidebarActiveText: '#FFFFFF', // White — active nav label on the blue sidebar
+    sidebarMuted: 'rgba(255, 255, 255, 0.62)', // "Powered by" line — needs more
+                              // lift on this blue than on a charcoal sidebar
+    surface: '#F8F8F9',       // Their exact page gray
     card: '#FFFFFF',          // White — card backgrounds
-    text: '#2B2B2A',          // Near-black — primary text
-    textSecondary: '#58585A', // Brand gray — secondary text
-    border: '#E3E6EA',        // Light cool border
+    text: '#2B2B2A',          // Their heading near-black
+    textSecondary: '#58585A', // Their body gray
+    border: '#E4E6E9',        // Light cool border
   },
 }
 
-// Fill in any lexicon word the entry did not override. Done once at module
-// load so each branding keeps a stable object identity across renders.
+// Fill in any lexicon word or typeface the entry did not override. Done once
+// at module load so each branding keeps a stable object identity across renders.
 function withLexicon(entry) {
-  return { ...entry, lexicon: { ...DEFAULT_LEXICON, ...(entry.lexicon || {}) } }
+  return {
+    ...entry,
+    lexicon: { ...DEFAULT_LEXICON, ...(entry.lexicon || {}) },
+    fonts: { ...DEFAULT_FONTS, ...(entry.fonts || {}) },
+  }
 }
 
 // Keyed by Supabase clients.id

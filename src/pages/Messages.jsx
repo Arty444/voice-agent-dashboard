@@ -192,9 +192,9 @@ export default function Messages() {
   const noteCount = calls.filter(call => hasText(call.staff_note)).length
 
   return (
-    <div className="space-y-6" style={{ fontFamily: "'Poppins', sans-serif" }}>
+    <div className="space-y-6" style={{ fontFamily: 'var(--font-body)' }}>
       <div>
-        <h1 className="text-2xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text, fontSize: '1.75rem' }}>
+        <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-heading)', color: branding.colors.text, fontSize: '1.75rem' }}>
           Messages
         </h1>
         <p className="text-sm mt-1" style={{ color: branding.colors.textSecondary }}>
@@ -205,15 +205,15 @@ export default function Messages() {
       <div className="grid gap-3 md:grid-cols-3">
         <div className="rounded-lg border bg-white p-4" style={{ borderColor: branding.colors.border }}>
           <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: branding.colors.textSecondary }}>Open Messages</p>
-          <p className="mt-2 text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{openCount}</p>
+          <p className="mt-2 text-3xl font-bold" style={{ fontFamily: 'var(--font-heading)', color: branding.colors.text }}>{openCount}</p>
         </div>
         <div className="rounded-lg border bg-white p-4" style={{ borderColor: branding.colors.border }}>
           <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: branding.colors.textSecondary }}>Calls With Notes</p>
-          <p className="mt-2 text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{noteCount}</p>
+          <p className="mt-2 text-3xl font-bold" style={{ fontFamily: 'var(--font-heading)', color: branding.colors.text }}>{noteCount}</p>
         </div>
         <div className="rounded-lg border bg-white p-4" style={{ borderColor: branding.colors.border }}>
           <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: branding.colors.textSecondary }}>Handled</p>
-          <p className="mt-2 text-3xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{handledCount}</p>
+          <p className="mt-2 text-3xl font-bold" style={{ fontFamily: 'var(--font-heading)', color: branding.colors.text }}>{handledCount}</p>
         </div>
       </div>
 
