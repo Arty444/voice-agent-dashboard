@@ -154,6 +154,7 @@ function EmptyChart() {
 export default function Analytics() {
   const { clientData, isAdmin } = useAuth()
   const branding = useBranding()
+  const lexicon = branding.lexicon
   const [calls, setCalls] = useState([])
   const [loading, setLoading] = useState(true)
   const [rangeDays, setRangeDays] = useState(7)
@@ -231,7 +232,7 @@ export default function Analytics() {
     })
 
     const categoryData = [
-      { name: 'Trials', value: trials.length, fill: '#22c55e' },
+      { name: lexicon.bookingsPlural, value: trials.length, fill: '#22c55e' },
       { name: 'Messages', value: messages.length, fill: '#f59e0b' },
       { name: 'Questions', value: questions.length, fill: '#38bdf8' },
       { name: 'Cancellations', value: cancellations.length, fill: '#f97316' },
@@ -291,10 +292,10 @@ export default function Analytics() {
         tone: openFollowUps.length ? 'rose' : 'teal',
       },
       {
-        title: 'Trial Demand',
+        title: lexicon.demandTitle,
         body: trials.length
-          ? `${trials.length} trials booked from ${nonSpam.length} real calls. Booking rate is ${formatPercent(trialRate)}.`
-          : 'No trials booked in this period yet.',
+          ? `${trials.length} ${lexicon.bookingsLower} ${lexicon.demandVerb} from ${nonSpam.length} real calls. Booking rate is ${formatPercent(trialRate)}.`
+          : lexicon.demandEmpty,
         tone: trials.length ? 'teal' : 'amber',
       },
       {
@@ -327,7 +328,7 @@ export default function Analytics() {
       hourBuckets,
       insights,
     }
-  }, [calls, rangeDays])
+  }, [calls, rangeDays, lexicon])
 
   if (loading) {
     return (
@@ -345,7 +346,7 @@ export default function Analytics() {
             Owner Analytics
           </h1>
           <p className="mt-0.5 text-sm" style={{ color: branding.colors.textSecondary }}>
-            How the phone agent is affecting trials, staff follow-up, and member experience.
+            {lexicon.analyticsSubtitle}
           </p>
         </div>
         <div className="flex overflow-hidden rounded-lg border" style={{ borderColor: branding.colors.border }}>
@@ -374,7 +375,7 @@ export default function Analytics() {
         />
         <StatCard
           icon={CalendarCheck}
-          label="Trials Scheduled"
+          label={lexicon.bookingsScheduled}
           value={analytics.trials}
           detail={metricDelta(analytics.trials, analytics.priorTrials)}
           tone="teal"
@@ -383,7 +384,7 @@ export default function Analytics() {
           icon={Target}
           label="Booking Rate"
           value={formatPercent(analytics.trialRate)}
-          detail="Trials divided by non-spam calls"
+          detail={lexicon.bookingRateDetail}
           tone="amber"
         />
         <StatCard
@@ -408,7 +409,7 @@ export default function Analytics() {
         <div className="rounded-lg border p-5 xl:col-span-2" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <h2 className="text-base font-bold" style={{ color: branding.colors.text }}>Call Volume and Trial Bookings</h2>
+              <h2 className="text-base font-bold" style={{ color: branding.colors.text }}>{lexicon.volumeChartTitle}</h2>
               <p className="text-xs" style={{ color: branding.colors.textSecondary }}>Daily trend for the selected period</p>
             </div>
             <TrendingUp size={18} style={{ color: branding.colors.primary }} />
@@ -423,7 +424,7 @@ export default function Analytics() {
                   <Tooltip />
                   <Legend />
                   <Line type="monotone" dataKey="calls" name="Calls" stroke={branding.colors.primary} strokeWidth={2.5} dot={false} />
-                  <Line type="monotone" dataKey="trials" name="Trials" stroke={branding.colors.accent} strokeWidth={2.5} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="trials" name={lexicon.bookingsPlural} stroke={branding.colors.accent} strokeWidth={2.5} dot={{ r: 3 }} />
                   <Line type="monotone" dataKey="followUps" name="Open Follow-Up" stroke="#e11d48" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
@@ -454,8 +455,8 @@ export default function Analytics() {
         <div className="rounded-lg border p-5" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <h2 className="text-base font-bold" style={{ color: branding.colors.text }}>Program Demand</h2>
-              <p className="text-xs" style={{ color: branding.colors.textSecondary }}>Which programs are generating trials</p>
+              <h2 className="text-base font-bold" style={{ color: branding.colors.text }}>{lexicon.programChartTitle}</h2>
+              <p className="text-xs" style={{ color: branding.colors.textSecondary }}>{lexicon.programsChartSubtitle}</p>
             </div>
             <Users size={18} style={{ color: branding.colors.accent }} />
           </div>
@@ -467,7 +468,7 @@ export default function Analytics() {
                   <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
                   <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} width={96} />
                   <Tooltip />
-                  <Bar dataKey="value" name="Trials" radius={[0, 6, 6, 0]}>
+                  <Bar dataKey="value" name={lexicon.bookingsPlural} radius={[0, 6, 6, 0]}>
                     {analytics.programData.map((_, index) => <Cell key={index} fill={PROGRAM_COLORS[index % PROGRAM_COLORS.length]} />)}
                   </Bar>
                 </BarChart>
@@ -479,7 +480,7 @@ export default function Analytics() {
         <div className="rounded-lg border p-5" style={{ backgroundColor: branding.colors.card, borderColor: branding.colors.border }}>
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <h2 className="text-base font-bold" style={{ color: branding.colors.text }}>Best Days for Trial Interest</h2>
+              <h2 className="text-base font-bold" style={{ color: branding.colors.text }}>{lexicon.bestDaysTitle}</h2>
               <p className="text-xs" style={{ color: branding.colors.textSecondary }}>Use this to spot staffing and ad timing patterns</p>
             </div>
             <Clock size={18} style={{ color: branding.colors.primary }} />
@@ -494,7 +495,7 @@ export default function Analytics() {
                   <Tooltip />
                   <Legend />
                   <Bar dataKey="calls" name="Calls" fill={branding.colors.primary} radius={[6, 6, 0, 0]} />
-                  <Bar dataKey="trials" name="Trials" fill={branding.colors.accent} radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="trials" name={lexicon.bookingsPlural} fill={branding.colors.accent} radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : <EmptyChart />}
@@ -512,7 +513,7 @@ export default function Analytics() {
                 <p className="text-sm font-bold" style={{ color: branding.colors.text }}>{bucket.label}</p>
                 <p className="mt-0.5 text-xs" style={{ color: branding.colors.textSecondary }}>{bucket.range}</p>
                 <p className="mt-2 text-2xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: branding.colors.text }}>{bucket.calls}</p>
-                <p className="text-xs" style={{ color: branding.colors.textSecondary }}>{bucket.trials} trials booked</p>
+                <p className="text-xs" style={{ color: branding.colors.textSecondary }}>{bucket.trials} {lexicon.bookingsLower} {lexicon.demandVerb}</p>
               </div>
             ))}
           </div>
@@ -522,7 +523,7 @@ export default function Analytics() {
           <h2 className="text-base font-bold" style={{ color: branding.colors.text }}>Service Mix</h2>
           <div className="mt-4 space-y-3">
             <div className="flex items-center justify-between text-sm">
-              <span className="flex items-center gap-2" style={{ color: branding.colors.textSecondary }}><CalendarCheck size={15} /> Trials Booked</span>
+              <span className="flex items-center gap-2" style={{ color: branding.colors.textSecondary }}><CalendarCheck size={15} /> {lexicon.bookingsBooked}</span>
               <strong style={{ color: branding.colors.text }}>{analytics.trials}</strong>
             </div>
             <div className="flex items-center justify-between text-sm">

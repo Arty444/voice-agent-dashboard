@@ -4,6 +4,37 @@
 // Add a new entry per client. Use getBranding(clientData) (or the useBranding
 // hook) to read the right one. Default falls back to McHugh.
 
+// Vertical vocabulary. Every client-facing label that assumes a martial-arts
+// academy lives here, so a non-gym vertical (chiropractic, ortho, clinic) can
+// re-word the UI without a code change. Entries omit `lexicon` entirely and
+// keep the gym wording below, byte for byte.
+const DEFAULT_LEXICON = {
+  bookingTab: 'Trial Classes',              // activity-feed tab + Call History filter
+  bookingBadge: 'Trial',                    // row badge on a booked call
+  bookingsPlural: 'Trials',                 // chart series + summary rows
+  bookingsLower: 'trials',                  // mid-sentence in generated insights
+  bookingsScheduled: 'Trials Scheduled',
+  bookingsBooked: 'Trials Booked',
+  bookingVerb: 'Scheduled',                 // "Scheduled Adult Jiu Jitsu trial — Fri..."
+  bookingNoun: 'trial',                     // set '' when programs already read as nouns
+  programFallback: 'Class',                 // when a booked call has no program
+  bookingDayLabel: 'Trial Day',
+  bookingTimeLabel: 'Trial Time',
+  bookingFallbackSummary: 'Trial class inquiry',
+  questionFallbackSummary: 'Had questions about classes',
+  demandTitle: 'Trial Demand',
+  demandVerb: 'booked',                     // "12 trials booked from 40 real calls"
+  demandEmpty: 'No trials booked in this period yet.',
+  volumeChartTitle: 'Call Volume and Trial Bookings',
+  bestDaysTitle: 'Best Days for Trial Interest',
+  bookingRateDetail: 'Trials divided by non-spam calls',
+  programChartTitle: 'Program Demand',
+  programLabel: 'Program',                  // table column header
+  programsChartSubtitle: 'Which programs are generating trials',
+  analyticsSubtitle: 'How the phone agent is affecting trials, staff follow-up, and member experience.',
+  prospectsSubtitle: 'scheduled trials',
+}
+
 const mchugh = {
   // Identity
   name: 'McHugh Jiu Jitsu',
@@ -359,20 +390,139 @@ const matakasHamilton = {
   ],
 }
 
+// Cassara Chiropractic Center — the first non-martial-arts tenant. Request-mode
+// agent (the office has no bookable system), so every "booking" is an
+// appointment REQUEST the front desk calls back to confirm.
+const cassara = {
+  // Identity
+  name: 'Cassara Chiropractic Center',
+  shortName: 'Cassara Chiropractic',
+  logo: '/cassara-logo-white.png',
+  poweredBy: 'Beacon Systems',
+
+  // Demo simplification: hide the Messages page from the nav (message-type
+  // calls still appear in the Command Center feed and Call History).
+  hiddenNav: ['/messages'],
+
+  // Demo polish: cleaned transcript only — no "Show raw transcript" link.
+  hideRawTranscriptToggle: true,
+
+  // Sidebar line under "Powered by Beacon".
+  locationLabel: 'Cherry Hill',
+
+  terminology: {
+    dashboard: 'Command Center',
+    subtitle: 'Today at Cassara Chiropractic',
+    inbox: 'Front Desk',
+    calls: 'Calls',
+    analytics: 'Analytics',
+    settings: 'Settings',
+    totalCalls: 'Inquiries Captured',
+    trialsBooked: 'Appointment Requests',
+  },
+
+  // Chiropractic wording — nothing on screen says "trial" or "class".
+  lexicon: {
+    bookingTab: 'Appointment Requests',
+    bookingBadge: 'Request',
+    bookingsPlural: 'Requests',
+    bookingsLower: 'appointment requests',
+    bookingsScheduled: 'Appointment Requests',
+    bookingsBooked: 'Requests Captured',
+    bookingVerb: 'Requested',
+    bookingNoun: '',          // visit types already end in "Visit"/"Therapy"
+    programFallback: 'Appointment',
+    bookingDayLabel: 'Preferred Day',
+    bookingTimeLabel: 'Preferred Time',
+    bookingFallbackSummary: 'New patient appointment request',
+    questionFallbackSummary: 'Had questions about the practice',
+    demandTitle: 'Appointment Demand',
+    demandVerb: 'captured',
+    demandEmpty: 'No appointment requests in this period yet.',
+    volumeChartTitle: 'Call Volume and Appointment Requests',
+    bestDaysTitle: 'Best Days for Appointment Interest',
+    bookingRateDetail: 'Requests divided by non-spam calls',
+    programChartTitle: 'Visit Type Demand',
+    programLabel: 'Visit Type',
+    programsChartSubtitle: 'Which visit types are generating requests',
+    analyticsSubtitle: 'How the phone agent is affecting new patient requests, front desk follow-up, and patient experience.',
+    prospectsSubtitle: 'appointment requests',
+  },
+
+  tabs: {
+    all: 'All Activity',
+    trial: 'Appointment Requests',
+    message: 'Messages',
+    question: 'Questions',
+    misc: 'Other Activity',
+    cancellation: 'Cancellations',
+    spam: 'Spam',
+  },
+
+  statuses: {
+    confirmed: 'Confirmed',
+    newInquiry: 'New Inquiry',
+  },
+
+  // Visit types, not classes. Matches the Retell post-call `program` enum
+  // patched for this agent (the McHugh clone shipped with Sharks programs).
+  programs: [
+    'New Patient Visit',
+    'Existing Patient Visit',
+    'Auto Accident / PIP',
+    'Spinal Decompression',
+    'Shockwave Therapy',
+    'Custom Orthotics',
+  ],
+
+  // Color palette — sourced from drcassara.com (blue #005bba, navy #12266c,
+  // green #46a443, red #ed2024, warm grays). Deep navy sidebar carries the
+  // white script-S wordmark.
+  colors: {
+    primary: '#005BBA',       // Cassara blue — active states, tabs, links
+    primaryDark: '#12266C',   // Brand navy
+    accent: '#46A443',        // Brand green — success, confirmed states
+    alert: '#ED2024',         // Brand red — attention, urgent items
+    sidebar: '#0F1D3D',       // Deep navy — sidebar background
+    sidebarText: '#e2e8f0',   // Light gray — sidebar text
+    sidebarActive: '#4A9BE8', // Light blue — active nav item
+    sidebarActiveBg: 'rgba(0, 91, 186, 0.22)', // Blue tint — active nav background
+    sidebarActiveText: '#8CC3F5', // Pale blue — active nav label on dark sidebar
+    surface: '#F5F6F8',       // Off-white — page background
+    card: '#FFFFFF',          // White — card backgrounds
+    text: '#2B2B2A',          // Near-black — primary text
+    textSecondary: '#58585A', // Brand gray — secondary text
+    border: '#E3E6EA',        // Light cool border
+  },
+}
+
+// Fill in any lexicon word the entry did not override. Done once at module
+// load so each branding keeps a stable object identity across renders.
+function withLexicon(entry) {
+  return { ...entry, lexicon: { ...DEFAULT_LEXICON, ...(entry.lexicon || {}) } }
+}
+
 // Keyed by Supabase clients.id
-export const BRANDINGS = {
+const RAW_BRANDINGS = {
   '6d047c8a-bedf-4feb-9223-803c57a8ce1a': mchugh,    // McHugh Jiu Jitsu HQ
   'd094ef3f-0b1d-4054-b47e-16596855a51b': teamBundy, // Team Bundy Jiu-Jitsu
   '5503c49f-bd9c-438a-a4cd-4e2d583b0319': roneyEdler, // Roney Edler Brazilian Jiu-Jitsu
   '2a94f278-af97-4400-9737-3080752c4ae9': gbArcadia,  // Gracie Barra Arcadia
   'b807d455-368f-4c34-b666-6ce98a084722': matakas,    // Matakas Jiu Jitsu (Florence)
   '9d0c7695-52d5-4a0d-8f46-e704997610a6': matakasHamilton, // Matakas Jiu Jitsu Hamilton
+  '367a7a4c-f058-4c96-a2d9-89964ad42866': cassara,   // Cassara Chiropractic Center
 }
+
+export const BRANDINGS = Object.fromEntries(
+  Object.entries(RAW_BRANDINGS).map(([id, entry]) => [id, withLexicon(entry)])
+)
+
+const DEFAULT_BRANDING = withLexicon(mchugh)
 
 // Resolve branding for the logged-in client; default to McHugh for
 // unknown/admin sessions so existing behavior is preserved.
 export function getBranding(clientData) {
-  return (clientData && BRANDINGS[clientData.id]) || mchugh
+  return (clientData && BRANDINGS[clientData.id]) || DEFAULT_BRANDING
 }
 
-export default mchugh
+export default DEFAULT_BRANDING

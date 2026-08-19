@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useBranding } from '../hooks/useBranding'
 import Badge from '../components/Badge'
 import { Check, X as XIcon } from 'lucide-react'
 
@@ -8,6 +9,7 @@ const STATUS_OPTIONS = ['Booked', 'Showed Up', 'Converted', 'No Show']
 
 export default function Leads() {
   const { clientData, isAdmin } = useAuth()
+  const lexicon = useBranding().lexicon
   const [leads, setLeads] = useState([])
   const [loading, setLoading] = useState(true)
   const [editingId, setEditingId] = useState(null)
@@ -61,7 +63,7 @@ export default function Leads() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold" style={{ fontFamily: "'Khand', sans-serif", color: '#1e293b' }}>Prospects</h1>
-        <p className="text-sm mt-1" style={{ color: '#64748b' }}>{leads.length} scheduled trials</p>
+        <p className="text-sm mt-1" style={{ color: '#64748b' }}>{leads.length} {lexicon.prospectsSubtitle}</p>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -74,9 +76,9 @@ export default function Leads() {
                 <tr>
                   <th className="px-4 py-3 font-medium text-gray-500">Name</th>
                   <th className="px-4 py-3 font-medium text-gray-500">Phone</th>
-                  <th className="px-4 py-3 font-medium text-gray-500">Program</th>
-                  <th className="px-4 py-3 font-medium text-gray-500">Trial Day</th>
-                  <th className="px-4 py-3 font-medium text-gray-500">Trial Time</th>
+                  <th className="px-4 py-3 font-medium text-gray-500">{lexicon.programLabel}</th>
+                  <th className="px-4 py-3 font-medium text-gray-500">{lexicon.bookingDayLabel}</th>
+                  <th className="px-4 py-3 font-medium text-gray-500">{lexicon.bookingTimeLabel}</th>
                   <th className="px-4 py-3 font-medium text-gray-500">Booked</th>
                   <th className="px-4 py-3 font-medium text-gray-500">Status</th>
                 </tr>

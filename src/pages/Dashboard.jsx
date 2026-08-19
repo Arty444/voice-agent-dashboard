@@ -58,10 +58,13 @@ function Sparkline({ points, color }) {
   )
 }
 
-const TABS = [
+// Tab + badge labels depend on the tenant's vocabulary (a chiropractic office
+// captures "Appointment Requests", not "Trial Classes"), so they are built from
+// the branding lexicon rather than hardcoded.
+const buildTabs = lx => [
   { key: 'all', label: 'All Calls' },
   { key: 'followup', label: 'Needs Follow-Up' },
-  { key: 'trial', label: 'Trial Classes' },
+  { key: 'trial', label: lx.bookingTab },
   { key: 'message', label: 'Messages' },
   { key: 'question', label: 'Questions' },
   { key: 'cancellation', label: 'Cancellations' },
@@ -83,8 +86,8 @@ const CATEGORY_STYLES = {
   deleted: { bg: 'bg-zinc-50', text: 'text-zinc-600', border: 'border-zinc-200' },
 }
 
-const CATEGORY_LABELS = {
-  trial: 'Trial',
+const buildCategoryLabels = lx => ({
+  trial: lx.bookingBadge,
   followup: 'Follow Up',
   message: 'Message',
   question: 'Question',
@@ -92,7 +95,7 @@ const CATEGORY_LABELS = {
   cancellation: 'Cancel',
   spam: 'Spam',
   deleted: 'Deleted',
-}
+})
 
 function isBlankValue(value) {
   if (value === null || value === undefined) return true
@@ -122,29 +125,32 @@ function categorizeCall(call) {
   return 'misc'
 }
 
-function getTrialLine(call) {
+function getTrialLine(call, lx) {
   if (isBlankValue(call.trial_day)) return null
-  const program = call.program || 'Class'
+  const program = call.program || lx.programFallback
+  // bookingNoun is empty for tenants whose program names already read as a
+  // noun ("New Patient Visit"), so it drops out rather than doubling up.
+  const label = [lx.bookingVerb, program, lx.bookingNoun].filter(Boolean).join(' ')
   try {
     const d = parseISO(call.trial_day)
     const dateStr = format(d, 'EEEE, MMMM do, yyyy')
     const time = call.trial_time || ''
-    return `Scheduled ${program} trial — ${dateStr}${time ? ' at ' + time : ''}`
+    return `${label} — ${dateStr}${time ? ' at ' + time : ''}`
   } catch {
     const time = call.trial_time || ''
-    return `Scheduled ${program} trial — ${call.trial_day}${time ? ' at ' + time : ''}`
+    return `${label} — ${call.trial_day}${time ? ' at ' + time : ''}`
   }
 }
 
-function getSummaryLine(call) {
+function getSummaryLine(call, lx) {
   if (call.summary) {
     const clean = call.summary.replace(/^call_summary\s*/i, '').trim()
     return clean.length > 150 ? clean.slice(0, 150) + '...' : clean
   }
   const cat = categorizeCall(call)
-  if (cat === 'trial') return 'Trial class inquiry'
+  if (cat === 'trial') return lx.bookingFallbackSummary
   if (cat === 'message') return 'Left a message — wants a callback'
-  if (cat === 'question') return 'Had questions about classes'
+  if (cat === 'question') return lx.questionFallbackSummary
   return 'General inquiry'
 }
 
@@ -158,15 +164,15 @@ function getProgramName(call) {
   return isBlankValue(call.program) ? null : call.program
 }
 
-function getActionLine(call) {
+function getActionLine(call, lx) {
   if (call.needs_follow_up) {
     return isBlankValue(call.follow_up_reason) ? 'Staff follow-up requested' : call.follow_up_reason
   }
 
-  const trialLine = getTrialLine(call)
+  const trialLine = getTrialLine(call, lx)
   if (trialLine) return trialLine
 
-  return getSummaryLine(call)
+  return getSummaryLine(call, lx)
 }
 
 function getCallTimeLabel(call) {
@@ -204,6 +210,9 @@ function formatDuration(seconds) {
 export default function Dashboard() {
   const { clientData, isAdmin } = useAuth()
   const branding = useBranding()
+  const lexicon = branding.lexicon
+  const tabs = buildTabs(lexicon)
+  const categoryLabels = buildCategoryLabels(lexicon)
   const [calls, setCalls] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('all')
@@ -549,7 +558,7 @@ export default function Dashboard() {
             className="pointer-events-none absolute bottom-0 h-0.5 rounded-full transition-all duration-300 ease-out"
             style={{ left: tabIndicator.left, width: tabIndicator.width, backgroundColor: branding.colors.primary }}
           />
-          {TABS.map(tab => {
+          {tabs.map(tab => {
             const isActive = activeTab === tab.key
             const count = categoryCounts[tab.key] || 0
             return (
@@ -619,7 +628,7 @@ export default function Dashboard() {
               const isPinned = call.pinned
               const callerName = getCallerName(call)
               const programName = getProgramName(call)
-              const actionLine = getActionLine(call)
+              const actionLine = getActionLine(call, lexicon)
               const callTimeLabel = getCallTimeLabel(call)
 
               return (
@@ -675,7 +684,7 @@ export default function Dashboard() {
                         </span>
                       )}
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide ${style.bg} ${style.text} ${style.border} border flex-shrink-0`}>
-                        {CATEGORY_LABELS[rowCat]}
+                        {categoryLabels[rowCat]}
                       </span>
                       {isPinned && (
                         <Pin size={12} className="text-amber-500 flex-shrink-0" />

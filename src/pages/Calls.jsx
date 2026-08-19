@@ -2,16 +2,17 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useBranding } from '../hooks/useBranding'
 import Badge from '../components/Badge'
 import CallDetailPanel from '../components/CallDetailPanel'
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const PAGE_SIZE = 20
 
-const TYPE_FILTERS = [
+const buildTypeFilters = lx => [
   { value: 'all', label: 'All Calls' },
   { value: 'followup', label: 'Needs Follow-Up' },
-  { value: 'trial', label: 'Trial Classes' },
+  { value: 'trial', label: lx.bookingTab },
   { value: 'message', label: 'Messages' },
   { value: 'question', label: 'Questions' },
   { value: 'cancellation', label: 'Cancellations' },
@@ -84,6 +85,8 @@ function isOpenFollowUp(call) {
 export default function Calls() {
   const { clientData, isAdmin } = useAuth()
   const location = useLocation()
+  const branding = useBranding()
+  const typeFilters = buildTypeFilters(branding.lexicon)
   const [calls, setCalls] = useState([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(0)
@@ -217,7 +220,7 @@ export default function Calls() {
             onChange={e => { setTypeFilter(e.target.value); setPage(0) }}
             className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           >
-            {TYPE_FILTERS.map(option => (
+            {typeFilters.map(option => (
               <option key={option.value} value={option.value}>{option.label}</option>
             ))}
           </select>
