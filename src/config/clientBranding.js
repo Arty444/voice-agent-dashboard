@@ -49,9 +49,9 @@ const mchugh = {
   logo: '/mchugh-logo-white.png',
   poweredBy: 'Beacon Systems',
 
-  // McHugh runs the SMS agent — show its Member Replies approval queue.
+  // Member Replies page turned off for McHugh 2026-11-06 (set true to bring it back).
   // (Hidden by default for every other client.)
-  smsRepliesEnabled: true,
+  smsRepliesEnabled: false,
 
   // Terminology — maps generic labels to client-specific language
   terminology: {
